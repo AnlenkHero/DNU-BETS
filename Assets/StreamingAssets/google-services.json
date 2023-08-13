@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1062902385276",
+    "firebase_url": "https://wwe-bets-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "wwe-bets",
+    "storage_bucket": "wwe-bets.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1062902385276:android:9c41df66e0a1529b1b17f9",
+        "android_client_info": {
+          "package_name": "com.google.firebase.wwe.bets"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1062902385276-n2sgbpsh3cu0n46r9piui4osm29tk781.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnd7ZBKfPxP6TybK9p6l6CQep-p36fmBk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1062902385276-n2sgbpsh3cu0n46r9piui4osm29tk781.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
