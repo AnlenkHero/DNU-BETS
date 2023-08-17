@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 [System.Serializable]
 public class Match
@@ -17,4 +15,5 @@ public class Contestant
     public string Name;
     public decimal Coefficient;
     public bool Winner;
+    public decimal betAmount;
 }

@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u0421\u0442\u0438\u043F\u0435\u043D\u0434\u0456\u044F \u043D\u0430 \u043A\u0430\u0440\u0442\u0456"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -359,6 +359,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   matchImage: {fileID: 4781310673663655847}
   title: {fileID: 4204208958985524029}
-  buttonParent: {fileID: 4947740498084336748}
-  buttonPrefab: {fileID: 5732074302676128269, guid: 204bb08f2db284944bf40282d32ceac1,
+  buttonParent: {fileID: 9109306866110379795}
+  buttonPrefab: {fileID: 6415241463025678732, guid: 204bb08f2db284944bf40282d32ceac1,
     type: 3}

@@ -1,5 +1,4 @@
 using Firebase;
-using Firebase.Extensions;
 using Firebase.Storage;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,16 +14,25 @@ public class FirebaseDataLoader
     public static async UniTask<FirebaseDataLoader> Create()
     {
         var loader = new FirebaseDataLoader();
-        await FirebaseApp.CheckAndFixDependenciesAsync();
-        FirebaseApp.Create();
+        var app = FirebaseApp.Create();
+       await FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task => {
+            var dependencyStatus = task.Result;
+            if (dependencyStatus == Firebase.DependencyStatus.Available) {
+                // Create and hold a reference to your FirebaseApp,
+                // where app is a Firebase.FirebaseApp property of your application class.
+                app = FirebaseApp.DefaultInstance;
+
+                // Set a flag here to indicate whether Firebase is ready to use by your app.
+            } else {
+                UnityEngine.Debug.LogError(System.String.Format(
+                    "Could not resolve all Firebase dependencies: {0}", dependencyStatus));
+                // Firebase Unity SDK is not safe to use here.
+            }
+        });
         loader.storage = FirebaseStorage.DefaultInstance;
         return loader;
     }
-
-    private FirebaseDataLoader()
-    {
-        
-    }
+    
 
     public async UniTask<List<Match>> FetchMatchesData()
     {
@@ -34,7 +42,7 @@ public class FirebaseDataLoader
         if (www.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError("Failed to fetch matches data: " + www.error);
-            return null; // or handle the error as you see fit
+            return null;
         }
         else
         {
