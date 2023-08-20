@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Libs.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;

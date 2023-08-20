@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using Libs.Models;
+using Libs.Services;
 using UnityEngine;
+using Match = Libs.Models.Match;
 
 public class DataMapper : MonoBehaviour
     {
@@ -11,8 +13,7 @@ public class DataMapper : MonoBehaviour
         [SerializeField] private SwipeMenu swipeMenu;
         private async void Awake()
         {
-            _loader = new();
-            List<Match> matches = await _loader.FetchMatchesData();
+            List<Match> matches = await FirebaseDataLoader.FetchMatchesData();
             //TODO Get from firebase
             UserData.Name = "Bodya";
             UserData.Balance = 1000;

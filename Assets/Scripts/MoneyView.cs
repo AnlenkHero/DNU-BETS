@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Libs.Models;
 using TMPro;
 using UnityEngine;
 

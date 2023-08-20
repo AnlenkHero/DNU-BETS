@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Libs.Models;
 using UnityEngine;
 
 public class BetsController : MonoBehaviour
