@@ -17,7 +17,6 @@ public class BetButtonView : MonoBehaviour
     [SerializeField] private Button betButton;
     public Contestant Contestant { get; private set; }
     public delegate void BetButtonEventHandler(object sender, BetButtonEventArgs args);
-
     public static event BetButtonEventHandler OnButtonClick;
     public void SetData(Contestant contestant)
     {

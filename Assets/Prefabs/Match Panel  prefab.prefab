@@ -362,3 +362,4 @@ MonoBehaviour:
   buttonParent: {fileID: 9109306866110379795}
   buttonPrefab: {fileID: 6415241463025678732, guid: 204bb08f2db284944bf40282d32ceac1,
     type: 3}
+  buttonViews: []

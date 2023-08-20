@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,21 +8,25 @@ public class SwipeMenu : MonoBehaviour
     [SerializeField] private Scrollbar scrollBar;
     private float _scrollPos = 0;
     private Dictionary<float,List<BetButtonView>> _posMatch;
-    public static List<BetButtonView> SelectedMatchButtons { get; private set; }
+    public static List<BetButtonView> SelectedMatchButtons { get; private set; } = new List<BetButtonView>();
     private float[] _pos;
-    
-    
+    private MatchView[] _views;
+
+    public void InitializeViews()
+    {
+        _views =transform.GetComponentsInChildren<MatchView>();
+    }
 
     private void InitializePositions()
     {
         _posMatch = new();
         _pos = new float [transform.childCount];
-        MatchView[] views =transform.GetComponentsInChildren<MatchView>(); //TODO unreal low lvl to have it in update
-        float distance = 1f / (views.Length - 1f);
-        for (int i = 0; i < views.Length; i++)
+        
+        float distance = 1f / (_pos.Length - 1f);
+        for (int i = 0; i < _pos.Length; i++)
         {
             _pos[i] = distance * i;
-            _posMatch[distance * i] = views[i].buttonViews;
+            _posMatch[distance * i] = _views[i].buttonViews;
         }
     }
     
@@ -48,14 +51,21 @@ public class SwipeMenu : MonoBehaviour
     private void LerpToClosestPosition()
     {
         float distance = 1f / (_posMatch.Count - 1f);
+        float closestPosition = _pos[0]; 
+        float smallestDifference = Mathf.Abs(_scrollPos - closestPosition);
+
         for (int i = 0; i < _posMatch.Count; i++)
         {
-            if (IsWithinDistance(_scrollPos, _pos[i], distance))
+            float currentDifference = Mathf.Abs(_scrollPos - _pos[i]);
+            if (currentDifference < smallestDifference)
             {
-                SelectedMatchButtons=_posMatch[_pos[i]];
-                scrollBar.value = Mathf.Lerp(scrollBar.value, _pos[i], 0.05f);
+                smallestDifference = currentDifference;
+                closestPosition = _pos[i];
             }
         }
+
+        SelectedMatchButtons = _posMatch[closestPosition];
+        scrollBar.value = Mathf.Lerp(scrollBar.value, closestPosition, 0.1f);
     }
 
     private bool IsWithinDistance(float value, float target, float distance)

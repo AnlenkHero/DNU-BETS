@@ -21,15 +21,17 @@ public class BetsController : MonoBehaviour
 
     private void HandleBetSubmitted(decimal betAmount)
     {
-        Debug.Log(_betButtonEventArgs.Contestant.betAmount=betAmount);
+        Debug.Log(_betButtonEventArgs.Contestant.betAmount = betAmount);
         foreach (var selectedMatchButton in SwipeMenu.SelectedMatchButtons)
         {
             selectedMatchButton.Hide();
         }
+    
         moneyView.SubtractMoney(betAmount);
         Debug.Log(moneyView.Balance);
         StartCoroutine(WaitAndLog(_betButtonEventArgs));
     }
+
 
     private void InitializeBetFields(object sender, BetButtonEventArgs args)
     {
