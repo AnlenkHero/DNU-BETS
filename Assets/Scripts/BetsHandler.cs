@@ -20,7 +20,7 @@ public class BetsHandler : MonoBehaviour
         if (decimal.TryParse(tmpInputField.text, out decimal parsedValue) && parsedValue<= money.Balance)
         {
             OnBetSubmitted?.Invoke(parsedValue);
-            gameObject.SetActive(false);
+            ExitBetMenu();
         }
         else
         {
@@ -29,6 +29,10 @@ public class BetsHandler : MonoBehaviour
         }
     }
 
+    public void ExitBetMenu()
+    {
+        gameObject.SetActive(false);
+    }
     public void InitializeBetMenu()
     {
         gameObject.SetActive(true);

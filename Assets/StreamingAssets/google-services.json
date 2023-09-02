@@ -15,7 +15,44 @@
       },
       "oauth_client": [
         {
-          "client_id": "1062902385276-n2sgbpsh3cu0n46r9piui4osm29tk781.apps.googleusercontent.com",
+          "client_id": "1062902385276-oq2j6i7qpqn4opc4p7a88kldl2ksum87.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.google.firebase.wwe.bets",
+            "certificate_hash": "a04ec952bd805ba57455b9903600cb50c047b4f8"
+          }
+        },
+        {
+          "client_id": "1062902385276-u12o6kiqrmjcssl54u5i2n4cg17orqqb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnd7ZBKfPxP6TybK9p6l6CQep-p36fmBk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1062902385276-n2sgbpsh3cu0n46r9piui4osm29tk781.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1062902385276:android:7cbe847d7afd96401b17f9",
+        "android_client_info": {
+          "package_name": "com.google.firebase.wwebets.admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1062902385276-u12o6kiqrmjcssl54u5i2n4cg17orqqb.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
