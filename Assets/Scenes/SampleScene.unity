@@ -2250,6 +2250,7 @@ GameObject:
   m_Component:
   - component: {fileID: 832575519}
   - component: {fileID: 832575518}
+  - component: {fileID: 832575520}
   m_Layer: 0
   m_Name: Global Volume
   m_TagString: Untagged
@@ -2289,6 +2290,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &832575520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832575517}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 050f2fcf89cbcaf408155e84494060ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volume: {fileID: 832575518}
 --- !u!1 &859605566
 GameObject:
   m_ObjectHideFlags: 0
@@ -2788,6 +2802,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   networkErrorPanel: {fileID: 216668966}
   tryAgainButton: {fileID: 177486732}
+  postProcessingController: {fileID: 832575520}
 --- !u!4 &1348084388
 Transform:
   m_ObjectHideFlags: 0
@@ -2840,7 +2855,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.16435418, y: 0.5473041}
   m_AnchorMax: {x: 0.85081255, y: 0.70400006}
-  m_AnchoredPosition: {x: 8.399902, y: 491.58276}
+  m_AnchoredPosition: {x: 8.399902, y: 491.5828}
   m_SizeDelta: {x: 1318, y: 602.87866}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1532426305
@@ -3525,8 +3540,8 @@ Canvas:
   m_GameObject: {fileID: 1810181020}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_RenderMode: 1
+  m_Camera: {fileID: 330585545}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -3845,7 +3860,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.9487224}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -78.8999, y: -90}
+  m_AnchoredPosition: {x: -78.89996, y: -90}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &1986419709

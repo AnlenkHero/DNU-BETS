@@ -3,11 +3,13 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class NetworkCheck : MonoBehaviour
 {
     private static bool _isNetworkActive;
     [SerializeField] private GameObject networkErrorPanel;
     [SerializeField] private Button tryAgainButton;
+    [SerializeField] private PostProcessingController postProcessingController;
     public static Action OnInternetEstablished;
 
     private void Awake()
@@ -31,12 +33,14 @@ public class NetworkCheck : MonoBehaviour
         {
             _isNetworkActive = false;
             networkErrorPanel.SetActive(true);
+            postProcessingController.ToggleEffectsOnInternetConnection(true);
             return;
         }
 
         if (_isNetworkActive) return;
         networkErrorPanel.SetActive(false);
         _isNetworkActive = true;
+        postProcessingController.ToggleEffectsOnInternetConnection(false);
         OnInternetEstablished?.Invoke();
     }
 }
