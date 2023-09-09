@@ -14,9 +14,9 @@ namespace Libs.Repositories
         private const string FirebaseDbUrl = "https://wwe-bets-default-rtdb.europe-west1.firebasedatabase.app/";
         private const string FirebaseStorageURL = "https://firebasestorage.googleapis.com/v0/b/wwe-bets.appspot.com";
 
-        public static IPromise<ResponseHelper> Save(MatchRequest match, Texture2D imageTexture)
+        public static IPromise<string> Save(MatchRequest match, Texture2D imageTexture)
         {
-            var promise = new Promise<ResponseHelper>();
+            var promise = new Promise<string>();
 
             string validationMessage = ValidateMatch(match);
 
@@ -30,8 +30,20 @@ namespace Libs.Repositories
             {
                 match.ImageUrl = imageUrl;
 
-                RestClient.Post($"{FirebaseDbUrl}matches.json", match).Then(response => { promise.Resolve(response); })
-                    .Catch(error => { promise.Reject(error); });
+                RestClient.Post($"{FirebaseDbUrl}matches.json", match).Then(response => 
+                { 
+                    
+                    var jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response.Text);
+
+                    if (jsonResponse != null && jsonResponse.TryGetValue("name", out string newMatchId))
+                    {
+                        promise.Resolve(newMatchId);
+                    }
+                    else
+                    {
+                        promise.Reject(new Exception("Match id is not returned"));        
+                    }
+                }).Catch(error =>{promise.Reject(error);});
             }).Catch(error => { promise.Reject(error); });
 
             return promise;
