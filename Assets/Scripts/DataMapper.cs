@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Libs.Services;
+using Libs.Repositories;
 using UnityEngine;
 using UnityEngine.UI;
 using Match = Libs.Models.Match;
@@ -30,10 +30,12 @@ public class DataMapper : MonoBehaviour
         
         private async void MapData()
         {
-            List<Match> matches = await FirebaseDataLoader.FetchMatchesData();
-            InitializeUserData();
-            ClearExistingMatches();
-            StartCoroutine(CreateMatchViews(matches));
+            MatchesRepository.GetAllMatches().Then(matches =>
+            {
+                InitializeUserData();
+                ClearExistingMatches();
+                StartCoroutine(CreateMatchViews(matches));
+            }).Catch((exception => Debug.LogError(exception.Message)));
         }
 
         private IEnumerator CreateMatchViews(List<Match> matches)
