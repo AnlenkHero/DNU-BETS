@@ -3,6 +3,7 @@ using System.Collections;
 using Libs.Models;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MoneyView : MonoBehaviour
 {
@@ -53,4 +54,5 @@ public class MoneyView : MonoBehaviour
 
         moneyText.text = Math.Round(targetAmount, 2).ToString();
     }
+    
 }

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using Libs.Models;
 using Libs.Services;
 using UnityEngine;
 using UnityEngine.UI;
@@ -64,7 +62,7 @@ public class DataMapper : MonoBehaviour
         {
             // TODO: Fetch these from Firebase or other data source
             UserData.Name = "Bodya";
-            UserData.Balance = 1000;
-            moneyView.SetMoney(UserData.Balance);
+            //UserData.Balance = 1000;
+            moneyView.SetMoney(1000);
         }
     }
