@@ -1,9 +1,8 @@
-﻿namespace Libs.Models 
+﻿namespace Libs.Models.RequestModels
 {
     [System.Serializable]
-    public class Contestant
+    public class ContestantRequest
     {
-        public string Id;
         public string Name;
         public double Coefficient;
         public bool Winner;

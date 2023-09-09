@@ -21,7 +21,6 @@ public class BetsController : MonoBehaviour
 
     private void HandleBetSubmitted(decimal betAmount)
     {
-        Debug.Log(_betButtonEventArgs.Contestant.betAmount = betAmount);
         foreach (var selectedMatchButton in SwipeMenu.SelectedMatchButtons)
         {
             selectedMatchButton.Hide();
@@ -42,8 +41,6 @@ public class BetsController : MonoBehaviour
     private IEnumerator WaitAndLog(BetButtonEventArgs args)
     {
         yield return new WaitForSeconds(2);
-        Debug.Log($"{args.Contestant.Name}+{args.Contestant.Coefficient * args.Contestant.betAmount} + {UserData.Balance}");
-        moneyView.AddMoney(args.Contestant.Coefficient * args.Contestant.betAmount);
         Debug.Log(moneyView.Balance);
     }
 }

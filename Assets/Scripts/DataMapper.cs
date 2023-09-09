@@ -7,7 +7,6 @@ using Match = Libs.Models.Match;
 
 public class DataMapper : MonoBehaviour
     {
-        private FirebaseDataLoader _loader;
         [SerializeField] private Transform matchPanelParent;
         [SerializeField] private MatchView matchPanel;
         [SerializeField] private MoneyView moneyView;

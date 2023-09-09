@@ -1,16 +1,14 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Libs.Models.RequestModels;
 
-namespace Libs.Models
+namespace Libs.Models.RequestModels
 {
     [System.Serializable]
-    public class Match
+    public class MatchRequest
     {
-        public string Id;
         public string ImageUrl;
         public string MatchTitle;
-        public List<Contestant> Contestants;
+        public List<ContestantRequest> Contestants;
         public string FinishedDateUtc;
         public bool IsBettingAvailable;
     }
