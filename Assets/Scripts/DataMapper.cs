@@ -30,7 +30,7 @@ public class DataMapper : MonoBehaviour
         
         private async void MapData()
         {
-            MatchesRepository.GetAllMatches().Then(matches =>
+            MatchesRepository.GetBettingAvailableMatches().Then(matches =>
             {
                 InitializeUserData();
                 ClearExistingMatches();

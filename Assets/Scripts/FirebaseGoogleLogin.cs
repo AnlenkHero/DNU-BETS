@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Firebase;
 using Firebase.Auth;
 using Google;
+using Libs.Models;
+using Libs.Repositories;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,6 +22,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
     [SerializeField] private TextMeshProUGUI statusText;
     [SerializeField] private Image profileImage;
     [SerializeField] private GameObject loginPanel;
+    private bool _isSignInInProgress = false;
 
     private void OnEnable()
     {
@@ -33,7 +36,6 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void Awake()
     {
-        // RequestEmail is true if you want to get the email adress, else false.
         configuration = new GoogleSignInConfiguration { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
         CheckFirebaseDependencies();
         SignInWithGoogle();
@@ -56,9 +58,16 @@ public class FirebaseGoogleLogin : MonoBehaviour
             }
         });
     }
-
-    // these 2 functions are called when clicking the button from unity.
-    public void SignInWithGoogle() { OnSignIn(); }
+    
+    public void SignInWithGoogle()
+    {
+        if (_isSignInInProgress)
+        {
+            return;
+        }
+        _isSignInInProgress = true;
+        OnSignIn();
+    }
     public void SignOutFromGoogle() { OnSignOut(); }
 
     private void OnSignIn()
@@ -85,9 +94,9 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     internal void OnAuthenticationFinished(Task<GoogleSignInUser> task)
     {
-        // if it failed, then show the error. Else continue with firebase.
         if (task.IsFaulted)
         {
+            _isSignInInProgress = false;
             using (IEnumerator<Exception> enumerator = task.Exception.InnerExceptions.GetEnumerator())
             {
                 if (enumerator.MoveNext())
@@ -103,6 +112,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         }
         else if (task.IsCanceled)
         {
+            _isSignInInProgress = false;
             AddToInformation("Canceled");
         }
         else
@@ -112,10 +122,12 @@ public class FirebaseGoogleLogin : MonoBehaviour
            // name.text = task.Result.DisplayName;
             //AddToInformation("Google ID Token = " + task.Result.IdToken);
             //AddToInformation("Email = " + task.Result.Email);
-            nameText.text = task.Result.DisplayName;
-            StartCoroutine(LoadImage(task.Result.ImageUrl.ToString()));
+            var result= task.Result;
+            UserRepository.SaveUser(new User() { Balance = 0,userId = result.UserId, token = result.IdToken, userName = result.DisplayName});
+            nameText.text = result.DisplayName;
+            StartCoroutine(LoadImage(result.ImageUrl.ToString()));
             loginPanel.SetActive(false);
-            SignInWithGoogleOnFirebase(task.Result.IdToken);
+            SignInWithGoogleOnFirebase(result.IdToken);
         }
     }
 
@@ -171,123 +183,3 @@ public class FirebaseGoogleLogin : MonoBehaviour
         profileImage.sprite = Sprite.Create(www.texture,new Rect(0,0, www.texture.width, www.texture.height),new Vector2(0,0));
     }
 }
-/*using System;
-using System.Collections;
-using System.Threading.Tasks;
-using Firebase;
-using Firebase.Extensions;
-using Google;
-using TMPro;
-using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
-
-public class FirebaseGoogleLogin : MonoBehaviour
-{
-    public string googleWebAPI = "1062902385276-u12o6kiqrmjcssl54u5i2n4cg17orqqb.apps.googleusercontent.com";
-
-    private GoogleSignInConfiguration _configuration;
-
-    private Firebase.DependencyStatus _dependencyStatus = DependencyStatus.UnavailableOther;
-    private Firebase.Auth.FirebaseAuth _auth;
-    private Firebase.Auth.FirebaseUser _user;
-
-    public TextMeshProUGUI usernameText;
-    [FormerlySerializedAs("ProfileImage")] public Image profileImage;
-    public string imageUrl;
-    [SerializeField] private TextMeshProUGUI debugLoginText;
-
-    public GameObject LoginScreen;
-
-    private void Awake()
-    {
-        _configuration = new GoogleSignInConfiguration
-        {
-            WebClientId = googleWebAPI,
-            RequestIdToken = true
-        };
-    }
-
-    private void Start()
-    {
-        InitFirebase();
-    }
-
-    private void InitFirebase()
-    {
-        _auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
-    }
-
-    public void GoogleSignInClick()
-    {
-        GoogleSignIn.Configuration = _configuration;
-        GoogleSignIn.Configuration.UseGameSignIn = false;
-        GoogleSignIn.Configuration.RequestIdToken = true;
-        GoogleSignIn.Configuration.RequestEmail = true;
-
-        GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnGoogleAuthenticationFinished);
-    }
-
-    private void OnGoogleAuthenticationFinished(Task<GoogleSignInUser> task)
-    {
-        if (task.IsFaulted)
-        {
-            debugLoginText.text = "Fault: " + task.Exception.ToString();
-            // Loop through all inner exceptions to get more details
-            foreach (var exception in task.Exception.Flatten().InnerExceptions)
-            {
-                debugLoginText.text += "\n" + exception.Message;
-            }
-            return;
-        }
-        else if (task.IsCanceled)
-        {
-            debugLoginText.text="Login Cancel";
-        }
-        else
-        {
-            Firebase.Auth.Credential credential = Firebase.Auth.GoogleAuthProvider.GetCredential(task.Result.IdToken, null);
-            _auth.SignInWithCredentialAsync(credential).ContinueWithOnMainThread(task =>
-            {
-                if (task.IsCanceled)
-                {
-                    debugLoginText.text="SignInWithCredentialAsync was canceled.";
-                    return;
-                }
-
-                if (task.IsFaulted)
-                {
-                    debugLoginText.text="SignInWithCredentialAsync encountered an error: " + task.Exception;
-                    return;
-                }
-
-                _user = _auth.CurrentUser;
-
-                usernameText.text = _user.DisplayName;
-
-                LoginScreen.SetActive(false);
-
-                StartCoroutine(LoadImage(CheckImageUrl(_user.PhotoUrl.ToString())));
-            });
-        }
-    }
-
-    private string CheckImageUrl(string url)
-    {
-        if (!string.IsNullOrEmpty(url))
-        {
-            return url;
-        }
-
-        return imageUrl;
-    }
-
-    private IEnumerator LoadImage(string imageUrl)
-    {
-        WWW www = new WWW(imageUrl);
-        yield return www;
-        
-        profileImage.sprite = Sprite.Create(www.texture,new Rect(0,0, www.texture.width, www.texture.height),new Vector2(0,0));
-    }
-}
-*/
