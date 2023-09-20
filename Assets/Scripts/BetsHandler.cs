@@ -7,7 +7,7 @@ public class BetsHandler : MonoBehaviour
     [SerializeField] private Button submitButton;
     [SerializeField] private MoneyView money;
 
-    public delegate void BetSubmittedHandler(decimal betAmount);
+    public delegate void BetSubmittedHandler(double betAmount);
     public event BetSubmittedHandler OnBetSubmitted;
 
     private void Awake()
@@ -17,7 +17,7 @@ public class BetsHandler : MonoBehaviour
 
     private void SubmitBet()
     {
-        if (decimal.TryParse(tmpInputField.text, out decimal parsedValue) && parsedValue<= money.Balance)
+        if (double.TryParse(tmpInputField.text, out double parsedValue) && parsedValue<= money.Balance)
         {
             OnBetSubmitted?.Invoke(parsedValue);
             ExitBetMenu();

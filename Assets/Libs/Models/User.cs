@@ -5,8 +5,7 @@ namespace Libs.Models
     public class User
     {
         public string userId;
-        public string token;
         public string userName;
-        public decimal Balance;
+        public double Balance;
     }
 }

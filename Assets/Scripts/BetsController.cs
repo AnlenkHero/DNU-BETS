@@ -19,7 +19,7 @@ public class BetsController : MonoBehaviour
         BetButtonView.OnButtonClick -= InitializeBetFields;
     }
 
-    private void HandleBetSubmitted(decimal betAmount)
+    private void HandleBetSubmitted(double betAmount)
     {
         foreach (var selectedMatchButton in SwipeMenu.SelectedMatchButtons)
         {

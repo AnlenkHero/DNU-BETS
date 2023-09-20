@@ -5,13 +5,14 @@ using Libs.Models;
 using Newtonsoft.Json;
 using Proyecto26;
 using RSG;
+using UnityEngine;
 
 namespace Libs.Repositories
 {
     public static class UserRepository
     {
         private const string FirebaseDbUrl = "https://wwe-bets-default-rtdb.europe-west1.firebasedatabase.app/";
-        
+
         public static Promise<User> GetUserByUserId(string userId)
         {
             return new Promise<User>((resolve, reject) =>
@@ -35,7 +36,7 @@ namespace Libs.Repositories
                     {
                         userId = firstUserKey,
                         userName = rawUser["userName"] as string,
-                        token = rawUser["token"] as string
+                        Balance = Convert.ToDouble(rawUser["Balance"])
                     };
 
                     resolve(user);
@@ -52,29 +53,43 @@ namespace Libs.Repositories
                 promise.Reject(new Exception("UserID or UserName is null or empty"));
                 return promise;
             }
-            
-            GetUserByUserId(user.userId).Then(existingUser =>
-            {
-                RestClient.Put($"{FirebaseDbUrl}users/{existingUser.userId}.json", user).Then(response =>
-                {
-                    promise.Resolve(existingUser.userId);
-                }).Catch(error => { promise.Reject(error); });
-            }).Catch(_ =>
-            {
-                // If the user doesn't exist, create new
-                RestClient.Post($"{FirebaseDbUrl}users.json", user).Then(response =>
-                {
-                    var jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response.Text);
 
-                    if (jsonResponse != null && jsonResponse.TryGetValue("name", out string newUserId))
-                    {
-                        promise.Resolve(newUserId);
-                    }
-                    else
-                    {
-                        promise.Reject(new Exception("User ID not returned from Firebase"));
-                    }
-                }).Catch(error => { promise.Reject(error); });
+            RestClient.Post($"{FirebaseDbUrl}users.json", user).Then(response =>
+            {
+                var jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response.Text);
+
+                if (jsonResponse != null && jsonResponse.TryGetValue("name", out string newUserId))
+                {
+                    promise.Resolve(newUserId);
+                }
+                else
+                {
+                    promise.Reject(new Exception("User ID not returned from Firebase"));
+                }
+            }).Catch(error => { promise.Reject(error); });
+
+
+            return promise;
+        }
+
+        public static IPromise<bool> UpdateUserBalance(string userId, double amountToChange)
+        {
+            var promise = new Promise<bool>();
+            //TODO get by data by firebase id
+            GetUserByUserId(userId).Then(user =>
+            {
+                user.Balance = amountToChange;
+                string keyUrlPart = $"{FirebaseDbUrl}users/{user.userId}.json";
+                Debug.Log(keyUrlPart);
+                user.userId = userId;
+                RestClient.Put(keyUrlPart, user).Then(response => { promise.Resolve(true); }).Catch(error =>
+                {
+                    promise.Reject(new Exception($"Error updating user balance: {error.Message}"));
+                });
+            }).Catch(error =>
+            {
+                Debug.Log($"error {error.Message}");
+                promise.Reject(new Exception($"Error retrieving user by UserID for balance update: {error.Message}"));
             });
 
             return promise;

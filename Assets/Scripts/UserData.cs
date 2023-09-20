@@ -1,5 +1,6 @@
 ﻿public static class UserData
 {
     public static string Name;
-    public static decimal Balance;
+    public static double Balance;
+    public static string UserId;
 }

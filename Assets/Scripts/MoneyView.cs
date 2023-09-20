@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using Libs.Models;
+using Libs.Repositories;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,14 +9,20 @@ using UnityEngine.UI;
 public class MoneyView : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI moneyText;
+    private double _tempBalance;
 
-    public decimal Balance
+    public double Balance
     {
         get => UserData.Balance;
         private set
         {
-            UserData.Balance = value;
-            UpdateMoneyText();
+            _tempBalance = value; 
+            Debug.Log(UserData.UserId);
+            UserRepository.UpdateUserBalance(UserData.UserId, _tempBalance).Then(_ =>
+            {
+                UserData.Balance = _tempBalance;
+                UpdateMoneyText();
+            });
         }
     }
     
@@ -25,25 +32,25 @@ public class MoneyView : MonoBehaviour
         StartCoroutine(UpdateMoneyTextAsync(UserData.Balance));
     }
 
-    public void AddMoney(decimal amount)
+    public void AddMoney(double amount)
     {
         Balance += amount;
     }
 
-    public void SubtractMoney(decimal amount)
+    public void SubtractMoney(double amount)
     {
         Balance -= amount;
     }
 
-    public void SetMoney(decimal amount)
+    public void SetMoney(double amount)
     {
         Balance = amount;
     }
 
-    private IEnumerator UpdateMoneyTextAsync(decimal targetAmount)
+    private IEnumerator UpdateMoneyTextAsync(double targetAmount)
     {
-        decimal currentAmount = decimal.Parse(moneyText.text);
-        decimal step = (targetAmount - currentAmount) / 10; 
+        double currentAmount = double.Parse(moneyText.text);
+        double step = (targetAmount - currentAmount) / 10; 
 
         for (int i = 0; i < 10; i++)
         {

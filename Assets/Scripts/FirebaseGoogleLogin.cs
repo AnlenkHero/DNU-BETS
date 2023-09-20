@@ -23,6 +23,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
     [SerializeField] private Image profileImage;
     [SerializeField] private GameObject loginPanel;
     private bool _isSignInInProgress = false;
+    public static Action OnLoginFinished;
 
     private void OnEnable()
     {
@@ -36,7 +37,8 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void Awake()
     {
-        configuration = new GoogleSignInConfiguration { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
+        configuration = new GoogleSignInConfiguration
+            { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
         CheckFirebaseDependencies();
         SignInWithGoogle();
     }
@@ -58,17 +60,22 @@ public class FirebaseGoogleLogin : MonoBehaviour
             }
         });
     }
-    
+
     public void SignInWithGoogle()
     {
         if (_isSignInInProgress)
         {
             return;
         }
+
         _isSignInInProgress = true;
         OnSignIn();
     }
-    public void SignOutFromGoogle() { OnSignOut(); }
+
+    public void SignOutFromGoogle()
+    {
+        OnSignOut();
+    }
 
     private void OnSignIn()
     {
@@ -117,16 +124,34 @@ public class FirebaseGoogleLogin : MonoBehaviour
         }
         else
         {
-           // AddToInformation("Welcome: " + task.Result.DisplayName + "!");
+            // AddToInformation("Welcome: " + task.Result.DisplayName + "!");
             //AddToInformation("Email = " + task.Result.Email);
-           // name.text = task.Result.DisplayName;
+            // name.text = task.Result.DisplayName;
             //AddToInformation("Google ID Token = " + task.Result.IdToken);
             //AddToInformation("Email = " + task.Result.Email);
-            var result= task.Result;
-            UserRepository.SaveUser(new User() { Balance = 0,userId = result.UserId, token = result.IdToken, userName = result.DisplayName});
-            nameText.text = result.DisplayName;
+            var result = task.Result;
+            var user = new User() { userId = result.UserId, userName = result.DisplayName, Balance = 1000};
+            UserRepository.GetUserByUserId(user.userId).Then(userId =>
+            {
+                UserData.Balance = userId.Balance;
+                UserData.Name = userId.userName;
+                UserData.UserId = user.userId;
+                OnLoginFinished?.Invoke();
+            }).Catch(errorUser =>
+            {
+                UserRepository.SaveUser(user).Then(userId =>
+                {
+                    UserData.Name = user.userName;
+                    UserData.Balance = user.Balance;
+                    UserData.UserId = user.userId;
+                    OnLoginFinished?.Invoke();
+                }).Catch(error => { Debug.LogError(error.Message); });
+            });
+            ;
+            //nameText.text = result.DisplayName;
             StartCoroutine(LoadImage(result.ImageUrl.ToString()));
             loginPanel.SetActive(false);
+            OnLoginFinished?.Invoke();
             SignInWithGoogleOnFirebase(result.IdToken);
         }
     }
@@ -173,13 +198,17 @@ public class FirebaseGoogleLogin : MonoBehaviour
         GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnAuthenticationFinished);
     }
 
-    private void AddToInformation(string str) { statusText.text += "\n" + str; }
-    
+    private void AddToInformation(string str)
+    {
+        statusText.text += "\n" + str;
+    }
+
     private IEnumerator LoadImage(string imageUrl)
     {
         WWW www = new WWW(imageUrl);
         yield return www;
-        
-        profileImage.sprite = Sprite.Create(www.texture,new Rect(0,0, www.texture.width, www.texture.height),new Vector2(0,0));
+
+        profileImage.sprite = Sprite.Create(www.texture, new Rect(0, 0, www.texture.width, www.texture.height),
+            new Vector2(0, 0));
     }
 }
