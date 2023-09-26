@@ -3843,7 +3843,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.16435418, y: 0.5473041}
   m_AnchorMax: {x: 0.85081255, y: 0.70400006}
-  m_AnchoredPosition: {x: 8.399902, y: 491.5829}
+  m_AnchoredPosition: {x: 8.399902, y: 491.58292}
   m_SizeDelta: {x: 1318, y: 602.87866}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1532426305
@@ -5426,7 +5426,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.16435418, y: 0.09929521}
   m_AnchorMax: {x: 0.85081255, y: 0.2921806}
-  m_AnchoredPosition: {x: 8.399902, y: -1162.4873}
+  m_AnchoredPosition: {x: 8.399902, y: -1162.4872}
   m_SizeDelta: {x: 1318, y: 742.11536}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2099033127
@@ -5560,7 +5560,7 @@ MonoBehaviour:
     type: 3}
   moneyView: {fileID: 1986419711}
   nameText: {fileID: 1866714341}
-  swipeMenu: {fileID: 824950492}
+  swipeMenu: {fileID: 0}
   updateMatchesButton: {fileID: 859605568}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -94,5 +94,30 @@ namespace Libs.Repositories
 
             return promise;
         }
+        
+        public static Promise<double> GetUserBalanceById(string userId)
+        {
+            return new Promise<double>((resolve, reject) =>
+            {
+                string queryUrl = $"{FirebaseDbUrl}users.json?orderBy=\"userId\"&equalTo=\"{userId}\"";
+
+                RestClient.Get(queryUrl).Then(response =>
+                {
+                    var rawUsers =
+                        JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                    if (rawUsers == null || !rawUsers.Any())
+                    {
+                        reject(new Exception("User not found for provided UserID"));
+                        return;
+                    }
+
+                    var firstUserKey = rawUsers.Keys.First();
+                    var rawUser = rawUsers[firstUserKey];
+
+                    double balance = Convert.ToDouble(rawUser["Balance"]);
+                    resolve(balance);
+                }).Catch(error => { reject(new Exception($"Error retrieving user balance by UserID: {error.Message}")); });
+            });
+        }
     }
 }

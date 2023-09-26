@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using Libs.Models;
 using TMPro;
@@ -21,11 +22,19 @@ public class MatchView : MonoBehaviour
         title.text = match.MatchTitle;
         UnityWebRequest www = UnityWebRequestTexture.GetTexture(match.ImageUrl);
         buttonViews = new List<BetButtonView>();
+        bool hasBets = BetCache.Bets.Any(x => x.MatchId == match.Id);
+        
         foreach (var contender in match.Contestants)
         {
-           var button = Instantiate(buttonPrefab, buttonParent);
-           button.SetData(contender);
-           buttonViews.Add(button);
+            var button = Instantiate(buttonPrefab, buttonParent);
+            button.SetData(contender, match.Id,this);
+            
+            if (hasBets)
+            {
+                button.Hide();
+            }
+            
+            buttonViews.Add(button);
         }
     }
 

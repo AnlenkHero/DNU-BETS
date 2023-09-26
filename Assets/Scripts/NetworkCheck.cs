@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class NetworkCheck : MonoBehaviour
 {
-    private static bool _isNetworkActive;
+    public static bool IsNetworkActive;
     [SerializeField] private GameObject networkErrorPanel;
     [SerializeField] private Button tryAgainButton;
     [SerializeField] private PostProcessingController postProcessingController;
@@ -31,15 +31,15 @@ public class NetworkCheck : MonoBehaviour
     {
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
-            _isNetworkActive = false;
+            IsNetworkActive = false;
             networkErrorPanel.SetActive(true);
             postProcessingController.ToggleEffectsOnInternetConnection(true);
             return;
         }
 
-        if (_isNetworkActive) return;
+        if (IsNetworkActive) return;
         networkErrorPanel.SetActive(false);
-        _isNetworkActive = true;
+        IsNetworkActive = true;
         postProcessingController.ToggleEffectsOnInternetConnection(false);
         OnInternetEstablished?.Invoke();
     }

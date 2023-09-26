@@ -4,6 +4,7 @@ namespace Libs.Models
     {
         public string MatchId;
         public string ContestantId;
-        public decimal BetAmount;
+        public double BetAmount;
+        public string UserId;
     }
 }

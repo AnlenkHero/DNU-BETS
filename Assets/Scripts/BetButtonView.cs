@@ -7,28 +7,34 @@ using UnityEngine.UI;
 public class BetButtonEventArgs : EventArgs
 {
     public Contestant Contestant { get; set; }
-    public BetButtonEventArgs(Contestant contestant)
+    public string MatchId { get; set; }
+
+    public MatchView MatchViewParent;
+    public BetButtonEventArgs(Contestant contestant,string matchId,MatchView matchView)
     {
         this.Contestant = contestant;
+        this.MatchId = matchId;
+        this.MatchViewParent = matchView;
     }
 }
 public class BetButtonView : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI buttonText;
     [SerializeField] private Button betButton;
+
     public Contestant Contestant { get; private set; }
     public delegate void BetButtonEventHandler(object sender, BetButtonEventArgs args);
     public static event BetButtonEventHandler OnButtonClick;
-    public void SetData(Contestant contestant)
+    public void SetData(Contestant contestant,string matchId, MatchView matchView)
     {
         buttonText.text = $"{contestant.Name} {contestant.Coefficient}";
         Contestant = contestant;
-        betButton.onClick.AddListener(() => RaiseEvent(contestant));
+        betButton.onClick.AddListener(() => RaiseEvent(contestant,matchId,matchView));
     }
 
-    private void RaiseEvent(Contestant contestant)
+    private void RaiseEvent(Contestant contestant,string matchId,MatchView matchView)
     {
-        OnButtonClick?.Invoke(this,new BetButtonEventArgs(contestant));
+        OnButtonClick?.Invoke(this,new BetButtonEventArgs(contestant,matchId,matchView));
     }
 
     public void Hide()

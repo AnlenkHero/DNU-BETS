@@ -1,4 +1,6 @@
 ﻿using System.Collections;
+using Libs.Models;
+using Libs.Repositories;
 using UnityEngine;
 
 public class BetsController : MonoBehaviour
@@ -21,14 +23,18 @@ public class BetsController : MonoBehaviour
 
     private void HandleBetSubmitted(double betAmount)
     {
-        foreach (var selectedMatchButton in SwipeMenu.SelectedMatchButtons)
+        var newBet = new Bet(){BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId, MatchId = _betButtonEventArgs.MatchId};
+        BetsRepository.SaveBet(newBet).Then((s =>
         {
-            selectedMatchButton.Hide();
-        }
-    
-        moneyView.SubtractMoney(betAmount);
-        Debug.Log(moneyView.Balance);
-        StartCoroutine(WaitAndLog(_betButtonEventArgs));
+            foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
+            {
+                betButtonView.Hide();
+            }
+        
+            moneyView.SubtractMoney(betAmount);
+        } ));
+        //  Debug.Log(moneyView.Balance);
+       // StartCoroutine(WaitAndLog(_betButtonEventArgs));
     }
 
 
