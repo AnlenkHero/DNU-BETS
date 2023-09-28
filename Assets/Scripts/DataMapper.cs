@@ -14,6 +14,7 @@ public class DataMapper : MonoBehaviour
     [SerializeField] private MatchView matchPanel;
     [SerializeField] private MoneyView moneyView;
     [SerializeField] private TextMeshProUGUI nameText;
+    [SerializeField] private GameObject noMatchesPanel;
     [SerializeField] private SwipeMenu swipeMenu;
     [SerializeField] private Button updateMatchesButton;
     public static bool MatchesAvailable;
@@ -25,19 +26,23 @@ public class DataMapper : MonoBehaviour
 
     private void OnEnable()
     {
-        FirebaseGoogleLogin.OnLoginFinished += MapData;
+        FirebaseGoogleLogin.OnLoginFinished += () => StartCoroutine(MapDataOverTime());
+        FirebaseGoogleLogin.OnLoginFinished += () => StartCoroutine(InitializeUserData());
         NetworkCheck.OnInternetEstablished += MapData;
     }
-
-    private void OnDisable()
-    {
-        NetworkCheck.OnInternetEstablished -= MapData;
-        FirebaseGoogleLogin.OnLoginFinished -= MapData;
-    }
-
-    private void MapData()
+    
+    public void MapData()
     {
         StartCoroutine(MapDataCoroutine());
+    }
+
+    private IEnumerator MapDataOverTime()
+    {
+        while (true)
+        {
+            StartCoroutine(MapDataCoroutine());
+            yield return new WaitForSeconds(30f);
+        }
     }
 
     private IEnumerator MapDataCoroutine()
@@ -47,8 +52,6 @@ public class DataMapper : MonoBehaviour
         MatchesRepository.GetBettingAvailableMatches()
             .Then(matches =>
             {
-                InitializeUserData();
-
                 BetsRepository.GetAllBetsByUserId(UserData.UserId)
                     .Then(bets => BetCache.Bets = bets)
                     .Catch(exception => Debug.LogError(exception.Message))
@@ -65,13 +68,19 @@ public class DataMapper : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
         yield return StartCoroutine(ClearExistingMatches());
-        foreach (var match in matches)
+        if(matches.Count == 0)
+            noMatchesPanel.SetActive(true);
+        else
         {
-            var matchView = Instantiate(matchPanel, matchPanelParent);
+            foreach (var match in matches)
+            {
+                var matchView = Instantiate(matchPanel, matchPanelParent);
 
-            matchView.SetData(match);
+                matchView.SetData(match);
+            }
+            MatchesAvailable = true;
+            noMatchesPanel.SetActive(false);
         }
-        MatchesAvailable = true;
     }
 
     private IEnumerator ClearExistingMatches()
@@ -84,9 +93,16 @@ public class DataMapper : MonoBehaviour
         yield return new WaitForEndOfFrame();
     }
 
-    private void InitializeUserData()
+    private IEnumerator InitializeUserData()
     {
-        nameText.text = UserData.Name;
-        UserRepository.GetUserBalanceById(UserData.UserId).Then(balance => { moneyView.SetMoney(balance); });
+        while (true)
+        {
+            nameText.text = UserData.Name;
+            UserRepository.GetUserBalanceById(UserData.UserId)
+                .Then(balance => { moneyView.SetMoney(balance); })
+                .Catch(error => { Debug.LogError(error); }); 
+            yield return new WaitForSeconds(10f);
+        }
     }
+
 }
