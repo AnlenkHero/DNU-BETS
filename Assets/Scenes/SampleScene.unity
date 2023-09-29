@@ -3471,8 +3471,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -745.31976, y: -23.949951}
-  m_SizeDelta: {x: -1597.73, y: -47.9}
+  m_AnchoredPosition: {x: -720, y: -22.5}
+  m_SizeDelta: {x: -1560, y: -45}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1042941922
 MonoBehaviour:
@@ -4199,8 +4199,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.5, y: 0}
+  m_SizeDelta: {x: 13, y: 12}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1390022893
 MonoBehaviour:
@@ -4211,10 +4211,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 1390022891}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
+  m_Script: {fileID: 11500000, guid: 385b7d1277b6c4007a84c065696e0f8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ShowMaskGraphic: 0
+  m_DownSamplingRate: 0
+  m_Softness: 0.384
+  m_Alpha: 1
+  m_IgnoreParent: 0
+  m_PartOfParent: 0
+  m_IgnoreSelfGraphic: 0
+  m_IgnoreSelfStencil: 0
 --- !u!114 &1390022894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4655,6 +4662,7 @@ GameObject:
   - component: {fileID: 1659752905}
   - component: {fileID: 1659752907}
   - component: {fileID: 1659752906}
+  - component: {fileID: 1659752908}
   m_Layer: 5
   m_Name: Profile image
   m_TagString: Untagged
@@ -4719,6 +4727,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1659752904}
   m_CullTransparentMesh: 1
+--- !u!114 &1659752908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659752904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97bc2ebab6563400c95b036136d26ea6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Inverse: 0
+  m_MaskInteraction: 85
+  m_UseStencil: 1
+  m_RaycastFilter: 0
 --- !u!1 &1672229580
 GameObject:
   m_ObjectHideFlags: 0
