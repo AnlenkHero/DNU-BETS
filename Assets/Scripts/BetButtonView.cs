@@ -41,5 +41,9 @@ public class BetButtonView : MonoBehaviour
     {
         betButton.interactable = false;
     }
+    public void Show()
+    {
+        betButton.interactable = true;
+    }
 
 }

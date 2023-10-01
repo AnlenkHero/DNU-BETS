@@ -1,3 +1,5 @@
+using System.Linq;
+using Libs.Repositories;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,12 +21,13 @@ public class ResetBehaviour : MonoBehaviour
 
     private void CheckConditions()
     {
-        if(moneyView.Balance<=BalanceToReset)
-            ResetMoney();
-        else
+        BetsRepository.GetAllBetsByUserId(UserData.UserId).Then(bets =>
         {
-            resetPanel.SetActive(true);
-        }
+            var hasActiveBets = bets.Any(bet => bet.IsActive);
+            if(moneyView.Balance<=BalanceToReset && !hasActiveBets)
+                resetPanel.SetActive(true);
+            //TODO ELSE INFO PANEL
+        });
     }
 
     private void Decline()
@@ -33,7 +36,10 @@ public class ResetBehaviour : MonoBehaviour
     }
     private void ResetMoney()
     {
-        moneyView.SetMoney(BalanceToReset);
+        moneyView.Balance=BalanceToReset;
+        UserRepository.UpdateUserBalance(UserData.UserId, UserData.Balance)
+            .Then(_ => Debug.Log("success money reset"))
+            .Catch(exception => Debug.Log(exception.Message));
         resetPanel.SetActive(false);
     }
 }

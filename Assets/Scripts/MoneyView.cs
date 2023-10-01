@@ -9,20 +9,15 @@ using UnityEngine.UI;
 public class MoneyView : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI moneyText;
-    private double _tempBalance;
+
 
     public double Balance
     {
-        get => UserData.Balance;
-        private set
+        get => UserData.Balance; 
+        set
         {
-            _tempBalance = value; 
-            Debug.Log(UserData.UserId);
-            UserRepository.UpdateUserBalance(UserData.UserId, _tempBalance).Then(_ =>
-            {
-                UserData.Balance = _tempBalance;
-                UpdateMoneyText();
-            });
+            UserData.Balance = value;
+            UpdateMoneyText();
         }
     }
     
@@ -30,21 +25,6 @@ public class MoneyView : MonoBehaviour
     {
         StopCoroutine(nameof(UpdateMoneyTextAsync));
         StartCoroutine(UpdateMoneyTextAsync(UserData.Balance));
-    }
-
-    public void AddMoney(double amount)
-    {
-        Balance += amount;
-    }
-
-    public void SubtractMoney(double amount)
-    {
-        Balance -= amount;
-    }
-
-    public void SetMoney(double amount)
-    {
-        Balance = amount;
     }
 
     private IEnumerator UpdateMoneyTextAsync(double targetAmount)

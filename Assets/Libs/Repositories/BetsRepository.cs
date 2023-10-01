@@ -86,9 +86,12 @@ namespace Libs.Repositories
 
                     Bet bet = new Bet
                     {
+                        BetId = betId,
                         MatchId = rawBet["MatchId"] as string,
                         ContestantId = rawBet["ContestantId"] as string,
-                        BetAmount = Convert.ToDouble(rawBet["BetAmount"])
+                        BetAmount = Convert.ToDouble(rawBet["BetAmount"]),
+                        UserId = rawBet["UserId"] as string,
+                        IsActive = (bool)rawBet["IsActive"]
                     };
 
                     resolve(bet);
@@ -119,10 +122,12 @@ namespace Libs.Repositories
 
                         Bet bet = new Bet
                         {
+                            BetId = rawBetKey,
                             MatchId = rawBet["MatchId"] as string,
                             ContestantId = rawBet["ContestantId"] as string,
                             BetAmount = Convert.ToDouble(rawBet["BetAmount"]),
-                            UserId = rawBet["UserId"] as string
+                            UserId = rawBet["UserId"] as string,
+                            IsActive = (bool)rawBet["IsActive"]
                         };
 
                         bets.Add(bet);
@@ -132,6 +137,48 @@ namespace Libs.Repositories
                 }).Catch(error =>
                 {
                     reject(new Exception($"Error retrieving bets by user ID: {error.Message}"));
+                });
+            });
+        }
+        
+        public static Promise<List<Bet>> GetAllBetsByMatchId(string matchId)
+        {
+            return new Promise<List<Bet>>((resolve, reject) =>
+            {
+                string queryUrl = $"{FirebaseDbUrl}bets.json?orderBy=\"MatchId\"&equalTo=\"{matchId}\"";
+
+                RestClient.Get(queryUrl).Then(response =>
+                {
+                    var rawBets = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+
+                    if (rawBets == null || !rawBets.Any())
+                    {
+                        reject(new Exception("No bets found for the match"));
+                        return;
+                    }
+
+                    List<Bet> bets = new List<Bet>();
+                    foreach (var rawBetKey in rawBets.Keys)
+                    {
+                        var rawBet = rawBets[rawBetKey];
+
+                        Bet bet = new Bet
+                        {
+                            BetId = rawBetKey,
+                            MatchId = rawBet["MatchId"] as string,
+                            ContestantId = rawBet["ContestantId"] as string,
+                            BetAmount = Convert.ToDouble(rawBet["BetAmount"]),
+                            UserId = rawBet["UserId"] as string,
+                            IsActive = (bool)rawBet["IsActive"]
+                        };
+
+                        bets.Add(bet);
+                    }
+                    
+                    resolve(bets);
+                }).Catch(error =>
+                {
+                    reject(new Exception($"Error retrieving bets by match ID: {error.Message}"));
                 });
             });
         }

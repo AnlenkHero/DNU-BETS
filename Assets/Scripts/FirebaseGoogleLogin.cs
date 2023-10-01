@@ -37,10 +37,27 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void Awake()
     {
-        configuration = new GoogleSignInConfiguration
+    /*    configuration = new GoogleSignInConfiguration
             { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
         CheckFirebaseDependencies();
-        SignInWithGoogle();
+        SignInWithGoogle();*/
+                var user = new User() { userId = "116993585815267308373", userName = "N", Balance = 1000};
+                UserRepository.GetUserByUserId(user.userId).Then(userId =>
+                {
+                    UserData.Balance = userId.Balance;
+                    UserData.Name = userId.userName;
+                    UserData.UserId = user.userId;
+                    OnLoginFinished?.Invoke();
+                }).Catch(errorUser =>
+                {
+                    UserRepository.SaveUser(user).Then(userId =>
+                    {
+                        UserData.Name = user.userName;
+                        UserData.Balance = user.Balance;
+                        UserData.UserId = user.userId;
+                        OnLoginFinished?.Invoke();
+                    }).Catch(error => { Debug.LogError(error.Message); });
+                });
     }
 
     private void CheckFirebaseDependencies()

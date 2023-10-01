@@ -1,3 +1,4 @@
+using Libs.Repositories;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +17,10 @@ public class PurchaseBuffBehaviour : MonoBehaviour
     {
         if (moneyView.Balance >= BuffPrice)
         {
-            moneyView.SubtractMoney(BuffPrice);
+            moneyView.Balance-=BuffPrice;
+            UserRepository.UpdateUserBalance(UserData.UserId, UserData.Balance)
+                .Then(_ => Debug.Log("success buff purchase"))
+                .Catch(exception => Debug.Log(exception.Message));
         }
     }
 }

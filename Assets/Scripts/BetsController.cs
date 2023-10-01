@@ -25,32 +25,42 @@ public class BetsController : MonoBehaviour
 
     private void HandleBetSubmitted(double betAmount)
     {
-        var newBet = new Bet(){BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId, MatchId = _betButtonEventArgs.MatchId};
+        foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
+        {
+            betButtonView.Hide();
+        }
+        var newBet = new Bet(){BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId, MatchId = _betButtonEventArgs.MatchId,IsActive = true};
         MatchesRepository.GetMatchById(newBet.MatchId).Then(match =>
         {
             if (match.IsBettingAvailable)
             {
-                BetsRepository.SaveBet(newBet).Then(_ =>
+                BetsRepository.SaveBet(newBet).Then(betId =>
                 {
-                    foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
-                    {
-                        betButtonView.Hide();
-                    }
-                    moneyView.SubtractMoney(betAmount);
+                    moneyView.Balance -= betAmount;
+                    
+                    UserRepository.UpdateUserBalance(UserData.UserId, UserData.Balance)
+                        .Then(_ => Debug.Log("success money update"))
+                        .Catch(exception => Debug.Log(exception.Message));
                 }).Catch(exception => { Debug.Log($"Error to make bet {exception.Message}"); });
             }
             else
             {
                 Debug.Log("Betting no available for this match");
+                foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
+                {
+                    betButtonView.Show();
+                }
                 dataMapper.MapData();
             }
-        }).Catch((exception =>
+        }).Catch(exception =>
         {
             Debug.Log($"Error get match by id for bet {exception.Message}");
+            foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
+            {
+                betButtonView.Show();
+            }
             dataMapper.MapData();
-        } ));
-        //  Debug.Log(moneyView.Balance);
-        // StartCoroutine(WaitAndLog(_betButtonEventArgs));
+        });
     }
 
 
