@@ -119,5 +119,32 @@ namespace Libs.Repositories
                 }).Catch(error => { reject(new Exception($"Error retrieving user balance by UserID: {error.Message}")); });
             });
         }
+        
+        public static IPromise<bool> UpdateUserBalanceAfterBet(string userId, double betAmount, double coefficient)
+        {
+            var promise = new Promise<bool>();
+
+            GetUserByUserId(userId).Then(user =>
+            {
+                Debug.Log("process");
+                double winnings = betAmount * coefficient;
+                user.Balance += winnings;
+                string keyUrlPart = $"{FirebaseDbUrl}users/{user.userId}.json";
+                user.userId = userId;
+                RestClient.Put(keyUrlPart, user).Then(response => 
+                {
+                    promise.Resolve(true);
+                }).Catch(error =>
+                {
+                    promise.Reject(new Exception($"Error updating user balance: {error.Message}"));
+                });
+            }).Catch(error =>
+            {
+                promise.Reject(new Exception($"Error retrieving user by UserID for balance update: {error.Message}"));
+                Debug.Log($"Error retrieving user by UserID for balance update: {error.Message}");
+            });
+
+            return promise;
+        }
     }
 }
