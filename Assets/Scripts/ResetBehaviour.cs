@@ -1,3 +1,5 @@
+using System.Linq;
+using Libs.Repositories;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,7 +13,7 @@ public class ResetBehaviour : MonoBehaviour
     private const int BalanceToReset = 300;
 
     private void Awake()
-    { 
+    {
         resetButton.onClick.AddListener(CheckConditions);
         confirmButton.onClick.AddListener(ResetMoney);
         declineButton.onClick.AddListener(Decline);
@@ -19,21 +21,32 @@ public class ResetBehaviour : MonoBehaviour
 
     private void CheckConditions()
     {
-        if(moneyView.Balance<=BalanceToReset)
-            ResetMoney();
-        else
+        BetsRepository.GetAllBetsByUserId(UserData.UserId).Then(bets =>
         {
-            resetPanel.SetActive(true);
-        }
+            var hasActiveBets = bets.Any(bet => bet.IsActive);
+            if (moneyView.Balance <= BalanceToReset && !hasActiveBets)
+                resetPanel.SetActive(true);
+            //TODO ELSE INFO PANEL
+        });
     }
 
     private void Decline()
     {
         resetPanel.SetActive(false);
     }
+
     private void ResetMoney()
     {
-        moneyView.SetMoney(BalanceToReset);
+        UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
+        {
+            user.Balance = BalanceToReset;
+            UserRepository.UpdateUserBalance(user).Then(helper =>
+                {
+                    moneyView.Balance = BalanceToReset;
+                    Debug.Log("Success money reset");
+                })
+                .Catch(exception => Debug.Log($"Failed to reset user balance {exception.Message}"));
+        }).Catch(exception => { Debug.Log($"Failed to get user by id {exception.Message}"); });
         resetPanel.SetActive(false);
     }
 }

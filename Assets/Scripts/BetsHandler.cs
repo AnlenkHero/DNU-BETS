@@ -24,8 +24,8 @@ public class BetsHandler : MonoBehaviour
         }
         else
         {
-            tmpInputField.text = "Invalid input for bet amount.";
-            Debug.LogError("Invalid input for bet amount.");
+            tmpInputField.text = "Invalid bet.";
+            Debug.LogError("Invalid bet.");
         }
     }
 
