@@ -4,7 +4,6 @@ using System.Linq;
 using Newtonsoft.Json;
 using Proyecto26;
 using RSG;
-using UnityEngine;
 using Libs.Models;
 
 namespace Libs.Repositories
@@ -107,7 +106,7 @@ namespace Libs.Repositories
 
                 RestClient.Get(queryUrl).Then(response =>
                 {
-                    var rawBets = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                    var rawBets = JsonConvert.DeserializeObject<Dictionary<string, Bet>>(response.Text);
 
                     if (rawBets == null || !rawBets.Any())
                     {
@@ -123,11 +122,11 @@ namespace Libs.Repositories
                         Bet bet = new Bet
                         {
                             BetId = rawBetKey,
-                            MatchId = rawBet["MatchId"] as string,
-                            ContestantId = rawBet["ContestantId"] as string,
-                            BetAmount = Convert.ToDouble(rawBet["BetAmount"]),
-                            UserId = rawBet["UserId"] as string,
-                            IsActive = (bool)rawBet["IsActive"]
+                            MatchId = rawBet.MatchId,
+                            ContestantId = rawBet.ContestantId,
+                            BetAmount = rawBet.BetAmount,
+                            UserId = rawBet.UserId,
+                            IsActive = rawBet.IsActive
                         };
 
                         bets.Add(bet);
@@ -149,7 +148,7 @@ namespace Libs.Repositories
 
                 RestClient.Get(queryUrl).Then(response =>
                 {
-                    var rawBets = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                    var rawBets = JsonConvert.DeserializeObject<Dictionary<string, Bet>>(response.Text);
 
                     if (rawBets == null || !rawBets.Any())
                     {
@@ -165,11 +164,11 @@ namespace Libs.Repositories
                         Bet bet = new Bet
                         {
                             BetId = rawBetKey,
-                            MatchId = rawBet["MatchId"] as string,
-                            ContestantId = rawBet["ContestantId"] as string,
-                            BetAmount = Convert.ToDouble(rawBet["BetAmount"]),
-                            UserId = rawBet["UserId"] as string,
-                            IsActive = (bool)rawBet["IsActive"]
+                            MatchId = rawBet.MatchId,
+                            ContestantId = rawBet.ContestantId,
+                            BetAmount = rawBet.BetAmount,
+                            UserId = rawBet.UserId,
+                            IsActive = rawBet.IsActive
                         };
 
                         bets.Add(bet);

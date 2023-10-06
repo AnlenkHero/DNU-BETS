@@ -22,21 +22,22 @@ namespace Libs.Repositories
                 RestClient.Get(queryUrl).Then(response =>
                 {
                     var rawUsers =
-                        JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                        JsonConvert.DeserializeObject<Dictionary<string, User>>(response.Text);
                     if (rawUsers == null || !rawUsers.Any())
                     {
                         reject(new Exception("User not found for provided UserID"));
                         return;
                     }
-
+                    
                     var firstUserKey = rawUsers.Keys.First();
                     var rawUser = rawUsers[firstUserKey];
 
                     User user = new User
                     {
-                        userId = firstUserKey,
-                        userName = rawUser["userName"] as string,
-                        Balance = Convert.ToDouble(rawUser["Balance"])
+                        id = firstUserKey,
+                        userId = rawUser.userId,
+                        userName = rawUser.userName,
+                        Balance = rawUser.Balance
                     };
 
                     resolve(user);
@@ -72,29 +73,12 @@ namespace Libs.Repositories
             return promise;
         }
 
-        public static IPromise<bool> UpdateUserBalance(string userId, double amountToChange)
+        public static IPromise<ResponseHelper> UpdateUserBalance(User user)
         {
-            var promise = new Promise<bool>();
-            //TODO get by data by firebase id
-            GetUserByUserId(userId).Then(user =>
-            {
-                user.Balance = amountToChange;
-                string keyUrlPart = $"{FirebaseDbUrl}users/{user.userId}.json";
-                Debug.Log(keyUrlPart);
-                user.userId = userId;
-                RestClient.Put(keyUrlPart, user).Then(response => { promise.Resolve(true); }).Catch(error =>
-                {
-                    promise.Reject(new Exception($"Error updating user balance: {error.Message}"));
-                });
-            }).Catch(error =>
-            {
-                Debug.Log($"error {error.Message}");
-                promise.Reject(new Exception($"Error retrieving user by UserID for balance update: {error.Message}"));
-            });
-
-            return promise;
+            string keyUrlPart = $"{FirebaseDbUrl}users/{user.id}.json";
+            return RestClient.Put(keyUrlPart, user);
         }
-        
+
         public static Promise<double> GetUserBalanceById(string userId)
         {
             return new Promise<double>((resolve, reject) =>
@@ -104,7 +88,7 @@ namespace Libs.Repositories
                 RestClient.Get(queryUrl).Then(response =>
                 {
                     var rawUsers =
-                        JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                        JsonConvert.DeserializeObject<Dictionary<string, User>>(response.Text);
                     if (rawUsers == null || !rawUsers.Any())
                     {
                         reject(new Exception("User not found for provided UserID"));
@@ -114,37 +98,13 @@ namespace Libs.Repositories
                     var firstUserKey = rawUsers.Keys.First();
                     var rawUser = rawUsers[firstUserKey];
 
-                    double balance = Convert.ToDouble(rawUser["Balance"]);
+                    double balance = rawUser.Balance;
                     resolve(balance);
-                }).Catch(error => { reject(new Exception($"Error retrieving user balance by UserID: {error.Message}")); });
-            });
-        }
-        
-        public static IPromise<bool> UpdateUserBalanceAfterBet(string userId, double betAmount, double coefficient)
-        {
-            var promise = new Promise<bool>();
-
-            GetUserByUserId(userId).Then(user =>
-            {
-                Debug.Log("process");
-                double winnings = betAmount * coefficient;
-                user.Balance += winnings;
-                string keyUrlPart = $"{FirebaseDbUrl}users/{user.userId}.json";
-                user.userId = userId;
-                RestClient.Put(keyUrlPart, user).Then(response => 
-                {
-                    promise.Resolve(true);
                 }).Catch(error =>
                 {
-                    promise.Reject(new Exception($"Error updating user balance: {error.Message}"));
+                    reject(new Exception($"Error retrieving user balance by UserID: {error.Message}"));
                 });
-            }).Catch(error =>
-            {
-                promise.Reject(new Exception($"Error retrieving user by UserID for balance update: {error.Message}"));
-                Debug.Log($"Error retrieving user by UserID for balance update: {error.Message}");
             });
-
-            return promise;
         }
     }
 }

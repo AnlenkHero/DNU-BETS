@@ -36,11 +36,17 @@ public class BetsController : MonoBehaviour
             {
                 BetsRepository.SaveBet(newBet).Then(betId =>
                 {
-                    moneyView.Balance -= betAmount;
-                    
-                    UserRepository.UpdateUserBalance(UserData.UserId, UserData.Balance)
-                        .Then(_ => Debug.Log("success money update"))
-                        .Catch(exception => Debug.Log(exception.Message));
+                   var tempBalance = moneyView.Balance - betAmount;
+                   UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
+                   {
+                       user.Balance = tempBalance;
+
+                       UserRepository.UpdateUserBalance(user).Then(helper =>
+                       {
+                           moneyView.Balance -= betAmount;
+                           Debug.Log("success money update");
+                       }).Catch(exception => Debug.Log($"Error to update balance {exception.Message}"));
+                   }).Catch(exception => Debug.Log($"Error to get user by id {exception.Message}"));;
                 }).Catch(exception => { Debug.Log($"Error to make bet {exception.Message}"); });
             }
             else
