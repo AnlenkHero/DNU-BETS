@@ -24,9 +24,22 @@ public class ResetBehaviour : MonoBehaviour
         BetsRepository.GetAllBetsByUserId(UserData.UserId).Then(bets =>
         {
             var hasActiveBets = bets.Any(bet => bet.IsActive);
-            if (moneyView.Balance <= BalanceToReset && !hasActiveBets)
+            if (moneyView.Balance < BalanceToReset && !hasActiveBets)
                 resetPanel.SetActive(true);
-            //TODO ELSE INFO PANEL
+            else
+            {
+                InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                    "You have active bets or your balance greater or equal than 300$");
+            }
+        }).Catch(_ =>
+        {
+            if (moneyView.Balance < BalanceToReset)
+                resetPanel.SetActive(true);
+            else
+            {
+                InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                    "Your balance greater than 300$");
+            }
         });
     }
 
@@ -43,10 +56,20 @@ public class ResetBehaviour : MonoBehaviour
             UserRepository.UpdateUserBalance(user).Then(helper =>
                 {
                     moneyView.Balance = BalanceToReset;
+                    InfoPanel.ShowPanel(new Color32(0x2F, 0xFF, 0x2F, 0xFF),
+                        "Success money reset");
                     Debug.Log("Success money reset");
                 })
-                .Catch(exception => Debug.Log($"Failed to reset user balance {exception.Message}"));
-        }).Catch(exception => { Debug.Log($"Failed to get user by id {exception.Message}"); });
+                .Catch(exception =>
+                {
+                    InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                        $"Failed to reset user balance. {exception.Message}");
+                });
+        }).Catch(exception =>
+        {
+            InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                $"Failed to get user by id. {exception.Message}");
+        });
         resetPanel.SetActive(false);
     }
 }

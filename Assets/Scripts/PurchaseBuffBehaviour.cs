@@ -27,8 +27,16 @@ public class PurchaseBuffBehaviour : MonoBehaviour
                         moneyView.Balance -= BuffPrice;
                         Debug.Log("Success buff purchase");
                     })
-                    .Catch(exception => Debug.Log($"Failed to reset user balance {exception.Message}"));
-            }).Catch(exception => { Debug.Log($"Failed to get user by id {exception.Message}"); });
+                    .Catch(exception =>
+                    {
+                        InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                            $"Failed to purchase buff. {exception.Message}");
+                    });
+            }).Catch(exception =>
+            {
+                InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                    $"Failed to get user by id. {exception.Message}");
+            });
         }
     }
 }

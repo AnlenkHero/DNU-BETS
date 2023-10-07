@@ -10,7 +10,7 @@ public class BetsController : MonoBehaviour
     [SerializeField] private MoneyView moneyView;
     [SerializeField] private DataMapper dataMapper;
     private BetButtonEventArgs _betButtonEventArgs;
-    
+
     private void OnEnable()
     {
         betsHandler.OnBetSubmitted += HandleBetSubmitted;
@@ -29,42 +29,66 @@ public class BetsController : MonoBehaviour
         {
             betButtonView.Hide();
         }
-        var newBet = new Bet(){BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId, MatchId = _betButtonEventArgs.MatchId,IsActive = true};
+
+        var newBet = new Bet()
+        {
+            BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId,
+            MatchId = _betButtonEventArgs.MatchId, IsActive = true
+        };
         MatchesRepository.GetMatchById(newBet.MatchId).Then(match =>
         {
             if (match.IsBettingAvailable)
             {
                 BetsRepository.SaveBet(newBet).Then(betId =>
                 {
-                   var tempBalance = moneyView.Balance - betAmount;
-                   UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
-                   {
-                       user.Balance = tempBalance;
+                    InfoPanel.ShowPanel(new Color32(0x2F, 0xFF, 0x2F, 0xFF),
+                        $"Bet has been successfully made. \nContestant name: {_betButtonEventArgs.Contestant.Name} \nBet amount: {betAmount}$ \nCoefficient: {_betButtonEventArgs.Contestant.Coefficient}");
+                    var tempBalance = moneyView.Balance - betAmount;
+                    UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
+                    {
+                        user.Balance = tempBalance;
 
-                       UserRepository.UpdateUserBalance(user).Then(helper =>
-                       {
-                           moneyView.Balance -= betAmount;
-                           Debug.Log("success money update");
-                       }).Catch(exception => Debug.Log($"Error to update balance {exception.Message}"));
-                   }).Catch(exception => Debug.Log($"Error to get user by id {exception.Message}"));;
-                }).Catch(exception => { Debug.Log($"Error to make bet {exception.Message}"); });
+                        UserRepository.UpdateUserBalance(user).Then(helper =>
+                        {
+                            moneyView.Balance -= betAmount;
+                            Debug.Log("success money update");
+                        }).Catch(exception =>
+                        {
+                            InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                                $"Error to update balance. {exception.Message}");
+                        });
+                    }).Catch(exception =>
+                    {
+                        InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                            $"Error to get user by id. {exception.Message}");
+                    });
+                    ;
+                }).Catch(exception =>
+                {
+                    InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                        $"Error to make bet. {exception.Message}");
+                });
             }
             else
             {
-                Debug.Log("Betting no available for this match");
+                InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                    "Betting not available for this match");
                 foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
                 {
                     betButtonView.Show();
                 }
+
                 dataMapper.MapData();
             }
         }).Catch(exception =>
         {
-            Debug.Log($"Error get match by id for bet {exception.Message}");
+            InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                $"Error to get match by id for bet. {exception.Message}");
             foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
             {
                 betButtonView.Show();
             }
+
             dataMapper.MapData();
         });
     }
