@@ -48,7 +48,7 @@ public class BetsController : MonoBehaviour
                     {
                         user.Balance = tempBalance;
 
-                        UserRepository.UpdateUserBalance(user).Then(helper =>
+                        UserRepository.UpdateUserInfo(user).Then(helper =>
                         {
                             moneyView.Balance -= betAmount;
                             Debug.Log("success money update");

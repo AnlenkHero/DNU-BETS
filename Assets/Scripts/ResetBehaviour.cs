@@ -53,7 +53,7 @@ public class ResetBehaviour : MonoBehaviour
         UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
         {
             user.Balance = BalanceToReset;
-            UserRepository.UpdateUserBalance(user).Then(helper =>
+            UserRepository.UpdateUserInfo(user).Then(helper =>
                 {
                     moneyView.Balance = BalanceToReset;
                     InfoPanel.ShowPanel(new Color32(0x2F, 0xFF, 0x2F, 0xFF),

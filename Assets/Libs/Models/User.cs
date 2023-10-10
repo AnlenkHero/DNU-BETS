@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 namespace Libs.Models 
 {
     [System.Serializable]
@@ -8,5 +7,6 @@ namespace Libs.Models
         public string userId;
         public string userName;
         public double Balance;
+        public string imageUrl;
     }
 }

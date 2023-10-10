@@ -22,7 +22,7 @@ public class PurchaseBuffBehaviour : MonoBehaviour
             UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
             {
                 user.Balance = tempBalance;
-                UserRepository.UpdateUserBalance(user).Then(helper =>
+                UserRepository.UpdateUserInfo(user).Then(helper =>
                     {
                         moneyView.Balance -= BuffPrice;
                         Debug.Log("Success buff purchase");

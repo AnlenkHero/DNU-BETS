@@ -142,18 +142,17 @@ public class FirebaseGoogleLogin : MonoBehaviour
         }
         else
         {
-            // AddToInformation("Welcome: " + task.Result.DisplayName + "!");
-            //AddToInformation("Email = " + task.Result.Email);
-            // name.text = task.Result.DisplayName;
-            //AddToInformation("Google ID Token = " + task.Result.IdToken);
-            //AddToInformation("Email = " + task.Result.Email);
+
             var result = task.Result;
-            var user = new User() { userId = result.UserId, userName = result.DisplayName, Balance = 1000};
+            var user = new User() { userId = result.UserId, userName = result.DisplayName, Balance = 1000,imageUrl = result.ImageUrl.ToString()};
             UserRepository.GetUserByUserId(user.userId).Then(userId =>
             {
                 UserData.Balance = userId.Balance;
                 UserData.Name = userId.userName;
                 UserData.UserId = user.userId;
+                userId.imageUrl = user.imageUrl;
+                userId.userName = user.userName;
+                UserRepository.UpdateUserInfo(userId);
                 OnLoginFinished?.Invoke();
             }).Catch(errorUser =>
             {
@@ -165,9 +164,8 @@ public class FirebaseGoogleLogin : MonoBehaviour
                     OnLoginFinished?.Invoke();
                 }).Catch(error => { Debug.LogError(error.Message); });
             });
-            ;
-            //nameText.text = result.DisplayName;
-            StartCoroutine(LoadImage(result.ImageUrl.ToString()));
+            
+            StartCoroutine(LoadImage(user.imageUrl));
             loginPanel.SetActive(false);
             OnLoginFinished?.Invoke();
             SignInWithGoogleOnFirebase(result.IdToken);
@@ -194,7 +192,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         });
     }
 
-    // these 2 functions are currently not used in this demo. but you can use it as per your need.
+
     public void OnSignInSilently()
     {
         GoogleSignIn.Configuration = configuration;

@@ -68,8 +68,8 @@ public class DataMapper : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
         yield return StartCoroutine(ClearExistingMatches());
-        if(matches.Count == 0)
-            noMatchesPanel.SetActive(true);
+        if (matches.Count == 0)
+            Instantiate(noMatchesPanel,matchPanelParent);
         else
         {
             foreach (var match in matches)
@@ -78,8 +78,8 @@ public class DataMapper : MonoBehaviour
 
                 matchView.SetData(match);
             }
+
             MatchesAvailable = true;
-            noMatchesPanel.SetActive(false);
         }
     }
 
