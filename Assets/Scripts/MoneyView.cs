@@ -1,10 +1,7 @@
 using System;
 using System.Collections;
-using Libs.Models;
-using Libs.Repositories;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MoneyView : MonoBehaviour
 {

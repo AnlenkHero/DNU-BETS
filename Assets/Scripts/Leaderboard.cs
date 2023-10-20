@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Libs.Models;
 using Libs.Repositories;
 using UnityEngine;
 
@@ -7,7 +8,12 @@ public class Leaderboard : MonoBehaviour
 {
     [SerializeField] private Transform leaderboardGrid;
     [SerializeField] private LeaderboardElement leaderboardElementPrefab;
-    [SerializeField] private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
+
+    [SerializeField]
+    private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
+
+    private AppSettings _appSettings;
+
     private void Start()
     {
         StartCoroutine(LeaderBoardCoroutine());
@@ -20,7 +26,7 @@ public class Leaderboard : MonoBehaviour
             ClearExistingLeaderboard();
             yield return new WaitForSeconds(1f);
             RefreshLeaderboard();
-            yield return new WaitForSeconds(200f);   
+            yield return new WaitForSeconds(200f);
         }
     }
 
@@ -28,7 +34,17 @@ public class Leaderboard : MonoBehaviour
     {
         UserRepository.GetAllUsers().Then(users =>
         {
-            var topUsers = users.OrderByDescending(x => x.Balance).Take(3).ToList();
+            AppSettingsRepository.GetAppSettings().Then(settings => _appSettings = settings);
+
+            foreach (var user in users)
+            {
+                foreach (var buff in user.buffPurchase)
+                {
+                    user.balance += buff.price;
+                }
+            }
+
+            var topUsers = users.OrderByDescending(x => x.balance).Take(3).ToList();
 
             int index = 0;
             foreach (var user in topUsers)
@@ -39,6 +55,7 @@ public class Leaderboard : MonoBehaviour
             }
         });
     }
+
     private void ClearExistingLeaderboard()
     {
         foreach (Transform child in leaderboardGrid)

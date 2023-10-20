@@ -1,9 +1,8 @@
 using System.Globalization;
-using Cysharp.Threading.Tasks;
+using Libs.Helpers;
 using Libs.Models;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class LeaderboardElement : MonoBehaviour
@@ -16,25 +15,20 @@ public class LeaderboardElement : MonoBehaviour
     public async void SetData(User user,Color color)
     {
         nameText.text = user.userName;
-        moneyText.text = $"{user.Balance.ToString(CultureInfo.InvariantCulture)}<color=#90EE90>$</color>";
+        moneyText.text = $"{user.balance.ToString(CultureInfo.InvariantCulture)}<color=#90EE90>$</color>";
         profileImageBorder.color = color;
         nameText.color = color;
         moneyText.color = color;
-        profileImage.texture = await MapImage(user.imageUrl);
-    }
-
-    private async UniTask<Texture> MapImage(string imageUrl)
-    {
-        UnityWebRequest www = UnityWebRequestTexture.GetTexture(imageUrl);
-        await www.SendWebRequest();
-
-        if (www.result != UnityWebRequest.Result.Success)
+        TextureLoader.LoadTexture(this, user.imageUrl, texture2D =>
         {
-            Debug.LogError("Failed to fetch image data: " + www.error);
-            return null;
-        }
-
-        Texture2D texture2D = DownloadHandlerTexture.GetContent(www);
-        return texture2D;
+            if (texture2D != null)
+            {
+                profileImage.texture = texture2D;
+            }
+            else
+            {
+                Debug.Log("Texture failed to load.");
+            }
+        });
     }
 }

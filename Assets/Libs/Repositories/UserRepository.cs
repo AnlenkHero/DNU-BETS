@@ -36,8 +36,9 @@ namespace Libs.Repositories
                         id = firstUserKey,
                         userId = rawUser.userId,
                         userName = rawUser.userName,
-                        Balance = rawUser.Balance,
-                        imageUrl = rawUser.imageUrl
+                        balance = rawUser.balance,
+                        imageUrl = rawUser.imageUrl,
+                        buffPurchase = rawUser.buffPurchase
                     };
 
                     resolve(user);
@@ -99,7 +100,7 @@ namespace Libs.Repositories
                     var firstUserKey = rawUsers.Keys.First();
                     var rawUser = rawUsers[firstUserKey];
 
-                    double balance = rawUser.Balance;
+                    double balance = rawUser.balance;
                     resolve(balance);
                 }).Catch(error =>
                 {

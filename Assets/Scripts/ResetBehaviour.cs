@@ -52,7 +52,7 @@ public class ResetBehaviour : MonoBehaviour
     {
         UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
         {
-            user.Balance = BalanceToReset;
+            user.balance = BalanceToReset;
             UserRepository.UpdateUserInfo(user).Then(helper =>
                 {
                     moneyView.Balance = BalanceToReset;

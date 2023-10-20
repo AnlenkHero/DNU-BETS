@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using UnityEngine.Serialization;
+
 namespace Libs.Models 
 {
     [System.Serializable]
@@ -6,7 +9,8 @@ namespace Libs.Models
         public string id;
         public string userId;
         public string userName;
-        public double Balance;
+        public double balance;
         public string imageUrl;
+        public List<BuffPurchase> buffPurchase = new List<BuffPurchase>();
     }
 }

@@ -75,28 +75,24 @@ namespace Libs.Repositories
             {
                 RestClient.Get($"{FirebaseDbUrl}bets/{betId}.json").Then(response =>
                 {
-                    var rawBet = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Text);
+                    Bet bet = JsonConvert.DeserializeObject<Bet>(response.Text);
 
-                    if (rawBet == null || !rawBet.Any())
+                    if (bet == null)
                     {
                         reject(new Exception("Bet not found"));
                         return;
                     }
-
-                    Bet bet = new Bet
-                    {
-                        BetId = betId,
-                        MatchId = rawBet["MatchId"] as string,
-                        ContestantId = rawBet["ContestantId"] as string,
-                        BetAmount = Convert.ToDouble(rawBet["BetAmount"]),
-                        UserId = rawBet["UserId"] as string,
-                        IsActive = (bool)rawBet["IsActive"]
-                    };
+                    
+                    bet.BetId = betId;
 
                     resolve(bet);
-                }).Catch(error => { reject(new Exception($"Error retrieving bet by ID: {error.Message}")); });
+                }).Catch(error =>
+                {
+                    reject(new Exception($"Error retrieving bet by ID: {error.Message}"));
+                });
             });
         }
+
         
         public static Promise<List<Bet>> GetAllBetsByUserId(string userId)
         {

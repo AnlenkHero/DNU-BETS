@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AppSettings : MonoBehaviour
+public class Settings : MonoBehaviour
 {
    
     void Start()

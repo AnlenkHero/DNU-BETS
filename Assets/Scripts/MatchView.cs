@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
+using Libs.Helpers;
 using Libs.Models;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class MatchView : MonoBehaviour
@@ -15,12 +14,22 @@ public class MatchView : MonoBehaviour
     [SerializeField] private BetButtonView buttonPrefab;
     public List<BetButtonView> buttonViews;
     public Match Match { get; private set; }
-    public async void SetData(Match match)
+    public  void SetData(Match match)
     {
+        TextureLoader.LoadTexture(this, match.ImageUrl, texture2D =>
+        {
+            if (texture2D != null)
+            {
+                matchImage.texture = texture2D;
+            }
+            else
+            {
+                Debug.Log("Texture failed to load.");
+            }
+        });
+        
         Match = match;
-        matchImage.texture = await MapImage(match.ImageUrl);
         title.text = match.MatchTitle;
-        UnityWebRequest www = UnityWebRequestTexture.GetTexture(match.ImageUrl);
         buttonViews = new List<BetButtonView>();
         bool hasBets = BetCache.Bets.Any(x => x.MatchId == match.Id);
         
@@ -37,19 +46,5 @@ public class MatchView : MonoBehaviour
             buttonViews.Add(button);
         }
     }
-
-    private async UniTask<Texture> MapImage(string imageUrl)
-    {
-        UnityWebRequest www = UnityWebRequestTexture.GetTexture(imageUrl);
-        await www.SendWebRequest();
-
-        if (www.result != UnityWebRequest.Result.Success)
-        {
-            Debug.LogError("Failed to fetch image data: " + www.error);
-            return null;
-        }
-        Texture2D texture2D = DownloadHandlerTexture.GetContent(www);
-        return texture2D;
-        
-    }
+    
 }
