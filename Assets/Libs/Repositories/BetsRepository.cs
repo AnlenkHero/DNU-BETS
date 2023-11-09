@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Proyecto26;
 using RSG;
 using Libs.Models;
+using Libs.Models.RequestModels;
 
 namespace Libs.Repositories
 {
@@ -12,11 +13,11 @@ namespace Libs.Repositories
     {
         private const string FirebaseDbUrl = "https://wwe-bets-default-rtdb.europe-west1.firebasedatabase.app/";
 
-        public static IPromise<string> SaveBet(Bet bet)
+        public static IPromise<string> SaveBet(BetRequest betRequest)
         {
             var promise = new Promise<string>();
 
-            string validationMessage = ValidateBet(bet);
+            string validationMessage = ValidateBet(betRequest);
 
             if (validationMessage != null)
             {
@@ -24,7 +25,7 @@ namespace Libs.Repositories
                 return promise;
             }
 
-            RestClient.Post($"{FirebaseDbUrl}bets.json", bet).Then(response =>
+            RestClient.Post($"{FirebaseDbUrl}bets.json", betRequest).Then(response =>
             {
                 var jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response.Text);
 
@@ -41,7 +42,7 @@ namespace Libs.Repositories
             return promise;
         }
 
-        public static IPromise<ResponseHelper> UpdateBet(string betId, Bet betToUpdate)
+        public static IPromise<ResponseHelper> UpdateBet(string betId, BetRequest betToUpdate)
         {
             string url = $"{FirebaseDbUrl}bets/{betId}.json";
             var promise = new Promise<ResponseHelper>();
@@ -82,8 +83,6 @@ namespace Libs.Repositories
                         reject(new Exception("Bet not found"));
                         return;
                     }
-                    
-                    bet.BetId = betId;
 
                     resolve(bet);
                 }).Catch(error =>
@@ -178,7 +177,7 @@ namespace Libs.Repositories
             });
         }
 
-        private static string ValidateBet(Bet bet)
+        private static string ValidateBet(BetRequest bet)
         {
             if (string.IsNullOrEmpty(bet.MatchId))
                 return "Match ID cannot be empty.";

@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 
 
 namespace Libs.Models
 {
-    [System.Serializable]
+    [Serializable]
     public class Match
     {
         public string Id;
@@ -12,5 +13,6 @@ namespace Libs.Models
         public List<Contestant> Contestants;
         public string FinishedDateUtc;
         public bool IsBettingAvailable;
+         public bool IsMatchCanceled;
     }
 }

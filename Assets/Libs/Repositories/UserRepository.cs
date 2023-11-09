@@ -80,6 +80,7 @@ namespace Libs.Repositories
             return RestClient.Put(keyUrlPart, user);
         }
         
+        
 
         public static Promise<double> GetUserBalanceById(string userId)
         {

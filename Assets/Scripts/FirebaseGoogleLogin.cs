@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Firebase;
 using Firebase.Auth;
@@ -38,12 +36,12 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void Awake()
     {
-      /*  configuration = new GoogleSignInConfiguration
+       configuration = new GoogleSignInConfiguration
             { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
         CheckFirebaseDependencies();
-        SignInWithGoogle();*/
+        SignInWithGoogle();
 
-              var user = new User() { userId = "116993585815267308373", userName = "N", balance = 1000};
+          /*    var user = new User() { userId = "116993585815267308373", userName = "N", balance = 1000};
                  UserRepository.GetUserByUserId(user.userId).Then(userId =>
                  {
                      UserData.Balance = userId.balance;
@@ -59,7 +57,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
                          UserData.UserId = user.userId;
                          OnLoginFinished?.Invoke();
                      }).Catch(error => { Debug.LogError(error.Message); });
-                 });
+                 });*/
     }
 
     private void CheckFirebaseDependencies()
@@ -90,11 +88,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         _isSignInInProgress = true;
         OnSignIn();
     }
-
-    public void SignOutFromGoogle()
-    {
-        OnSignOut();
-    }
+    
 
     private void OnSignIn()
     {
@@ -105,18 +99,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
         GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnAuthenticationFinished);
     }
-
-    private void OnSignOut()
-    {
-        AddToInformation("Calling SignOut");
-        GoogleSignIn.DefaultInstance.SignOut();
-    }
-
-    public void OnDisconnect()
-    {
-        AddToInformation("Calling Disconnect");
-        GoogleSignIn.DefaultInstance.Disconnect();
-    }
+    
 
     internal void OnAuthenticationFinished(Task<GoogleSignInUser> task)
     {
@@ -193,7 +176,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         auth.SignInWithCredentialAsync(credential).ContinueWith(task =>
         {
             AggregateException ex = task.Exception;
-            // check for error.
+            
             if (ex != null)
             {
                 if (ex.InnerExceptions[0] is FirebaseException inner && (inner.ErrorCode != 0))
@@ -204,28 +187,6 @@ public class FirebaseGoogleLogin : MonoBehaviour
                 AddToInformation("Sign In Successful.");
             }
         });
-    }
-
-
-    public void OnSignInSilently()
-    {
-        GoogleSignIn.Configuration = configuration;
-        GoogleSignIn.Configuration.UseGameSignIn = false;
-        GoogleSignIn.Configuration.RequestIdToken = true;
-        AddToInformation("Calling SignIn Silently");
-
-        GoogleSignIn.DefaultInstance.SignInSilently().ContinueWith(OnAuthenticationFinished);
-    }
-
-    public void OnGamesSignIn()
-    {
-        GoogleSignIn.Configuration = configuration;
-        GoogleSignIn.Configuration.UseGameSignIn = true;
-        GoogleSignIn.Configuration.RequestIdToken = false;
-
-        AddToInformation("Calling Games SignIn");
-
-        GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnAuthenticationFinished);
     }
 
     private void AddToInformation(string str)

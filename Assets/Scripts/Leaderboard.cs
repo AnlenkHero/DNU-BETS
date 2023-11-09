@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq;
-using Libs.Models;
 using Libs.Repositories;
 using UnityEngine;
 
@@ -11,8 +10,6 @@ public class Leaderboard : MonoBehaviour
 
     [SerializeField]
     private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
-
-    private AppSettings _appSettings;
 
     private void Start()
     {
@@ -26,7 +23,7 @@ public class Leaderboard : MonoBehaviour
             ClearExistingLeaderboard();
             yield return new WaitForSeconds(1f);
             RefreshLeaderboard();
-            yield return new WaitForSeconds(200f);
+            yield return new WaitForSeconds(60f);
         }
     }
 
@@ -34,8 +31,6 @@ public class Leaderboard : MonoBehaviour
     {
         UserRepository.GetAllUsers().Then(users =>
         {
-            AppSettingsRepository.GetAppSettings().Then(settings => _appSettings = settings);
-
             foreach (var user in users)
             {
                 foreach (var buff in user.buffPurchase)

@@ -12,7 +12,7 @@ public class LeaderboardElement : MonoBehaviour
     [SerializeField] private TextMeshProUGUI moneyText;
     [SerializeField] private Image profileImageBorder;
 
-    public async void SetData(User user,Color color)
+    public void SetData(User user,Color color)
     {
         nameText.text = user.userName;
         moneyText.text = $"{user.balance.ToString(CultureInfo.InvariantCulture)}<color=#90EE90>$</color>";

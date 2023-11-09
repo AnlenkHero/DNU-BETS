@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using Libs.Models;
+using Libs.Models.RequestModels;
 using Libs.Repositories;
 using UnityEngine;
 
@@ -30,16 +30,16 @@ public class BetsController : MonoBehaviour
             betButtonView.Hide();
         }
 
-        var newBet = new Bet()
+        var newBetRequest = new BetRequest()
         {
             BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId,
             MatchId = _betButtonEventArgs.MatchId, IsActive = true
         };
-        MatchesRepository.GetMatchById(newBet.MatchId).Then(match =>
+        MatchesRepository.GetMatchById(newBetRequest.MatchId).Then(match =>
         {
             if (match.IsBettingAvailable)
             {
-                BetsRepository.SaveBet(newBet).Then(betId =>
+                BetsRepository.SaveBet(newBetRequest).Then(betId =>
                 {
                     InfoPanel.ShowPanel(new Color32(0x2F, 0xFF, 0x2F, 0xFF),
                         $"Bet has been successfully made. \nContestant name: {_betButtonEventArgs.Contestant.Name} \nBet amount: {betAmount}$ \nCoefficient: {_betButtonEventArgs.Contestant.Coefficient}");
@@ -99,10 +99,5 @@ public class BetsController : MonoBehaviour
         _betButtonEventArgs = args;
         betsHandler.InitializeBetMenu();
     }
-
-    private IEnumerator WaitAndLog(BetButtonEventArgs args)
-    {
-        yield return new WaitForSeconds(2);
-        Debug.Log(moneyView.Balance);
-    }
+    
 }

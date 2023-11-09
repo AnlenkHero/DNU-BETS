@@ -1,9 +1,8 @@
-namespace Libs.Models 
+﻿namespace Libs.Models.RequestModels
 {
     [System.Serializable]
-    public class Bet
+    public class BetRequest
     {
-        public string BetId;
         public string MatchId;
         public string ContestantId;
         public double BetAmount;

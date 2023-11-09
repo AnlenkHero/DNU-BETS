@@ -4294,7 +4294,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: BIGGE<color=#90EE90>$</color>T GABMLER<color=#90EE90>$</color>
+  m_text: BIGGE<color=#90EE90>$</color>T GAMBLER<color=#90EE90>$</color>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b03fdd54c532a4a4cb1ad89e1d2c0ca0, type: 2}
   m_sharedMaterial: {fileID: 8659373926764162716, guid: b03fdd54c532a4a4cb1ad89e1d2c0ca0,
