@@ -6,6 +6,7 @@ using Firebase.Auth;
 using Google;
 using Libs.Helpers;
 using Libs.Models;
+using Libs.Models.RequestModels;
 using Libs.Repositories;
 using TMPro;
 using UnityEngine;
@@ -41,7 +42,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         CheckFirebaseDependencies();
         SignInWithGoogle();
 
-          /*    var user = new User() { userId = "116993585815267308373", userName = "N", balance = 1000};
+             /*var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000};
                  UserRepository.GetUserByUserId(user.userId).Then(userId =>
                  {
                      UserData.Balance = userId.balance;
@@ -127,7 +128,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         else
         {
             var result = task.Result;
-            var user = new User()
+            var user = new UserRequest()
             {
                 userId = result.UserId, userName = result.DisplayName, balance = 1000,
                 imageUrl = result.ImageUrl.ToString()

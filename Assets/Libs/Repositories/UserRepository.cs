@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Libs.Models;
+using Libs.Models.RequestModels;
 using Newtonsoft.Json;
 using Proyecto26;
 using RSG;
@@ -21,13 +22,13 @@ namespace Libs.Repositories
                 RestClient.Get(queryUrl).Then(response =>
                 {
                     var rawUsers =
-                        JsonConvert.DeserializeObject<Dictionary<string, User>>(response.Text);
+                        JsonConvert.DeserializeObject<Dictionary<string, UserRequest>>(response.Text);
                     if (rawUsers == null || !rawUsers.Any())
                     {
                         reject(new Exception("User not found for provided UserID"));
                         return;
                     }
-                    
+
                     var firstUserKey = rawUsers.Keys.First();
                     var rawUser = rawUsers[firstUserKey];
 
@@ -46,7 +47,7 @@ namespace Libs.Repositories
             });
         }
 
-        public static IPromise<string> SaveUser(User user)
+        public static IPromise<string> SaveUser(UserRequest user)
         {
             var promise = new Promise<string>();
 
@@ -76,11 +77,11 @@ namespace Libs.Repositories
 
         public static IPromise<ResponseHelper> UpdateUserInfo(User user)
         {
+            var userRequest = new UserRequest {userName = user.userName, balance = user.balance, userId = user.userId, imageUrl = user.imageUrl, buffPurchase = user.buffPurchase};
             string keyUrlPart = $"{FirebaseDbUrl}users/{user.id}.json";
-            return RestClient.Put(keyUrlPart, user);
+            return RestClient.Put(keyUrlPart, userRequest);
         }
-        
-        
+
 
         public static Promise<double> GetUserBalanceById(string userId)
         {
@@ -91,7 +92,7 @@ namespace Libs.Repositories
                 RestClient.Get(queryUrl).Then(response =>
                 {
                     var rawUsers =
-                        JsonConvert.DeserializeObject<Dictionary<string, User>>(response.Text);
+                        JsonConvert.DeserializeObject<Dictionary<string, UserRequest>>(response.Text);
                     if (rawUsers == null || !rawUsers.Any())
                     {
                         reject(new Exception("User not found for provided UserID"));
@@ -109,6 +110,7 @@ namespace Libs.Repositories
                 });
             });
         }
+
         public static Promise<List<User>> GetAllUsers()
         {
             return new Promise<List<User>>((resolve, reject) =>
@@ -117,17 +119,21 @@ namespace Libs.Repositories
 
                 RestClient.Get(queryUrl).Then(response =>
                 {
-                    var rawUsers = JsonConvert.DeserializeObject<Dictionary<string, User>>(response.Text);
+                    var rawUsers = JsonConvert.DeserializeObject<Dictionary<string, UserRequest>>(response.Text);
                     if (rawUsers == null || !rawUsers.Any())
                     {
                         reject(new Exception("No users found"));
                         return;
                     }
-                    
+
                     var users = rawUsers.Select(kvp =>
                     {
-                        var user = kvp.Value;
-                        user.id = kvp.Key;
+                        var user = new User
+                        {
+                            userId = kvp.Value.userId, userName = kvp.Value.userName, balance = kvp.Value.balance,
+                            imageUrl = kvp.Value.imageUrl, buffPurchase = kvp.Value.buffPurchase,
+                            id = kvp.Key
+                        };
                         return user;
                     }).ToList();
 
@@ -135,6 +141,5 @@ namespace Libs.Repositories
                 }).Catch(error => { reject(new Exception($"Error retrieving all users: {error.Message}")); });
             });
         }
-        
     }
 }
