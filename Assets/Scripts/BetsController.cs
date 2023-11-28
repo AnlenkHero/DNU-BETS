@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Libs.Models;
+﻿using System;
 using Libs.Models.RequestModels;
 using Libs.Repositories;
 using UnityEngine;
@@ -10,6 +9,8 @@ public class BetsController : MonoBehaviour
     [SerializeField] private MoneyView moneyView;
     [SerializeField] private DataMapper dataMapper;
     private BetButtonEventArgs _betButtonEventArgs;
+
+    public static event Action OnBetPosted; 
 
     private void OnEnable()
     {
@@ -62,7 +63,8 @@ public class BetsController : MonoBehaviour
                         InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
                             $"Error to get user by id. {exception.Message}");
                     });
-                    ;
+                    
+                    OnBetPosted?.Invoke();
                 }).Catch(exception =>
                 {
                     InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
@@ -99,5 +101,4 @@ public class BetsController : MonoBehaviour
         _betButtonEventArgs = args;
         betsHandler.InitializeBetMenu();
     }
-    
 }

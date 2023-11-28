@@ -19,6 +19,8 @@ public class DataMapper : MonoBehaviour
     [SerializeField] private Button updateMatchesButton;
     public static bool MatchesAvailable;
 
+    public static event Action OnMapData;
+
     private void Awake()
     {
         updateMatchesButton.onClick.AddListener(MapData);
@@ -34,6 +36,7 @@ public class DataMapper : MonoBehaviour
     public void MapData()
     {
         StartCoroutine(MapDataCoroutine());
+        OnMapData?.Invoke();
     }
 
     private IEnumerator MapDataOverTime()
