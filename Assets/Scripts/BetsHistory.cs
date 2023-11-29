@@ -5,11 +5,14 @@ using System.Globalization;
 using System.Linq;
 using Libs.Repositories;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BetsHistory : MonoBehaviour
 {
     [SerializeField] private BetHistoryElement betHistoryElement;
     [SerializeField] private Transform betHistoryParent;
+    [SerializeField] private BetsHistoryTotalInfo betsHistoryTotalInfo;
+    [SerializeField] private ScrollRect scrollRect;
     private bool _isBetsHistoryRefreshing;
 
 
@@ -45,6 +48,10 @@ public class BetsHistory : MonoBehaviour
             {
                 var betHistoryElements = new List<BetHistoryElement>();
                 var betsToProcess = bets.Count;
+                var betsWon = 0;
+                var betsLost = 0;
+                double moneyGained = 0;
+                double moneyLost = 0;
 
                 foreach (var bet in bets)
                 {
@@ -63,6 +70,17 @@ public class BetsHistory : MonoBehaviour
 
                         betHistoryElements.Add(tempBetHistoryElement);
 
+                        if (contestant.Winner)
+                        {
+                            betsWon++;
+                            moneyGained += contestant.Coefficient * bet.BetAmount;
+                        }
+                        else if(!bet.IsActive)
+                        {
+                            moneyLost -= bet.BetAmount;
+                            betsLost++;
+                        }
+                        
                         betsToProcess--;
                         if (betsToProcess != 0) return;
                         betHistoryElements.Sort((a, b) => b.Date.CompareTo(a.Date));
@@ -70,7 +88,8 @@ public class BetsHistory : MonoBehaviour
                         {
                             betHistoryElements[i].transform.SetSiblingIndex(i);
                         }
-
+                        betsHistoryTotalInfo.SetData(bets.Count,betsWon, betsLost, moneyGained, moneyLost);
+                        scrollRect.normalizedPosition = new Vector2(0, 1.5f);
                         _isBetsHistoryRefreshing = false;
                     });
                 }
