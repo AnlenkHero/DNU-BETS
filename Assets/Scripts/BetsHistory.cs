@@ -75,12 +75,12 @@ public class BetsHistory : MonoBehaviour
                             betsWon++;
                             moneyGained += contestant.Coefficient * bet.BetAmount;
                         }
-                        else if(!bet.IsActive)
+                        else if (!bet.IsActive)
                         {
                             moneyLost -= bet.BetAmount;
                             betsLost++;
                         }
-                        
+
                         betsToProcess--;
                         if (betsToProcess != 0) return;
                         betHistoryElements.Sort((a, b) => b.Date.CompareTo(a.Date));
@@ -88,13 +88,18 @@ public class BetsHistory : MonoBehaviour
                         {
                             betHistoryElements[i].transform.SetSiblingIndex(i);
                         }
-                        betsHistoryTotalInfo.SetData(bets.Count,betsWon, betsLost, moneyGained, moneyLost);
+
+                        betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
                         scrollRect.normalizedPosition = new Vector2(0, 1.5f);
                         _isBetsHistoryRefreshing = false;
                     });
                 }
             })
-            .Catch(exception => Debug.LogError(exception.Message));
+            .Catch(exception =>
+            {
+                Debug.LogError(exception.Message);
+                _isBetsHistoryRefreshing = false;
+            });
     }
 
     private IEnumerator ClearExistingBetsHistory()

@@ -2,10 +2,9 @@ using UnityEngine;
 
 public class Settings : MonoBehaviour
 {
-   
-    void Start()
+    private void Awake()
     {
-        Application.targetFrameRate = 120;
+        Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
     }
 
 }
