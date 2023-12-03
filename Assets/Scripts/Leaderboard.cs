@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Libs.Helpers;
 using Libs.Repositories;
 using UnityEngine;
 
@@ -29,6 +30,13 @@ public class Leaderboard : MonoBehaviour
 
     private void RefreshLeaderboard()
     {
+        Color32[] colors ={ ColorHelper.PaleYellow, ColorHelper.LightGreen };
+        
+        float[] times = {0.5f, 1.0f};
+        
+        Gradient biggestGamblerGradient = GradientHelper.CreateGradient(colors, times);
+
+        
         UserRepository.GetAllUsers().Then(users =>
         {
             foreach (var user in users)
@@ -46,6 +54,11 @@ public class Leaderboard : MonoBehaviour
             {
                 var leaderboardElement = Instantiate(leaderboardElementPrefab, leaderboardGrid);
                 leaderboardElement.SetData(user, topColors[index]);
+                if (index == 0)
+                {
+                    leaderboardElement.SetData(user, topColors[index],biggestGamblerGradient);
+                }
+
                 index++;
             }
         });
@@ -58,4 +71,6 @@ public class Leaderboard : MonoBehaviour
             Destroy(child.gameObject);
         }
     }
+
+
 }

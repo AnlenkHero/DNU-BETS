@@ -1,4 +1,5 @@
 using System.Linq;
+using Libs.Helpers;
 using Libs.Repositories;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,8 +29,8 @@ public class ResetBehaviour : MonoBehaviour
                 resetPanel.SetActive(true);
             else
             {
-                InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
-                    "You have active bets or your balance greater or equal than 300$");
+                InfoPanel.ShowPanel(ColorHelper.HotPink,
+                    $"You have active bets or your balance greater or equal than 300<color={ColorHelper.LightGreenString}>$</color>");
             }
         }).Catch(_ =>
         {
@@ -37,8 +38,8 @@ public class ResetBehaviour : MonoBehaviour
                 resetPanel.SetActive(true);
             else
             {
-                InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
-                    "Your balance greater than 300$");
+                InfoPanel.ShowPanel(ColorHelper.HotPink,
+                    $"Your balance greater than 300<color={ColorHelper.LightGreenString}>$</color>");
             }
         });
     }
@@ -56,18 +57,18 @@ public class ResetBehaviour : MonoBehaviour
             UserRepository.UpdateUserInfo(user).Then(helper =>
                 {
                     moneyView.Balance = BalanceToReset;
-                    InfoPanel.ShowPanel(new Color32(0x2F, 0xFF, 0x2F, 0xFF),
+                    InfoPanel.ShowPanel(ColorHelper.LightGreen,
                         "Success money reset");
                     Debug.Log("Success money reset");
                 })
                 .Catch(exception =>
                 {
-                    InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                    InfoPanel.ShowPanel(ColorHelper.HotPink,
                         $"Failed to reset user balance. {exception.Message}");
                 });
         }).Catch(exception =>
         {
-            InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+            InfoPanel.ShowPanel(ColorHelper.HotPink,
                 $"Failed to get user by id. {exception.Message}");
         });
         resetPanel.SetActive(false);

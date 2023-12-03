@@ -1,4 +1,5 @@
 ﻿using System;
+using Libs.Helpers;
 using TMPro;
 using UnityEngine;
 
@@ -18,7 +19,7 @@ public class BetHistoryElement : MonoBehaviour
         matchTitleTMP.text = matchTitle;
         contestantNameTMP.text = contestantName;
         coefficientTMP.text = coefficient.ToString("F2");
-        betAmountTMP.text = $"{betAmount.ToString()}<color=#90EE90>$</color>";
+        betAmountTMP.text = $"{betAmount.ToString()}<color={ColorHelper.LightGreenString}>$</color>";
         CheckWin(isWin, isActive, isCanceled,coefficient, betAmount);
         Date = dateTime;
     }
@@ -27,24 +28,24 @@ public class BetHistoryElement : MonoBehaviour
     {
         if (isActive)
         {
-            SetStatus("Ongoing",  new Color32(0xFD, 0xFD, 0x96, 0xFF), betAmount);
+            SetStatus("Ongoing",  ColorHelper.PaleYellow, betAmount);
             return;
         }
 
         if (isCanceled)
         {
-            SetStatus("Canceled", new Color32(0xFD, 0xFD, 0x96,0xFF), betAmount);
+            SetStatus("Canceled", ColorHelper.PaleYellow, betAmount);
             return;
         }
 
         if (isWin)
         {
             var winMoney = coefficient * betAmount;
-            SetStatus("Win", new Color32(0x90, 0xEE, 0x90, 0xFF), winMoney);
+            SetStatus("Win", ColorHelper.LightGreen, winMoney);
             return;
         }
 
-        SetStatus("Lose", new Color32(0xFF, 0x69, 0xB4,0xFF), -betAmount);
+        SetStatus("Lose", ColorHelper.HotPink, -betAmount);
     }
 
     private void SetStatus(string status, Color32 color, double amount)
@@ -52,7 +53,7 @@ public class BetHistoryElement : MonoBehaviour
         isWinTMP.text = status;
         isWinTMP.color = color;
 
-        moneyLostOrGainedTMP.text = $"{amount.ToString()}<color=#90EE90>$</color>";
+        moneyLostOrGainedTMP.text = $"{amount.ToString()}<color={ColorHelper.LightGreenString}>$</color>";
         moneyLostOrGainedTMP.color = color;
     }
 

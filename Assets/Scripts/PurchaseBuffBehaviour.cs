@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Libs.Helpers;
 using Libs.Models;
 using Libs.Repositories;
 using UnityEngine;
@@ -39,29 +40,29 @@ public class PurchaseBuffBehaviour : MonoBehaviour
                     UserRepository.UpdateUserInfo(user).Then(helper =>
                         {
                             moneyView.Balance -= _buffPrice;
-                            InfoPanel.ShowPanel(new Color32(0x2F, 0xFF, 0x2F, 0xFF),
+                            InfoPanel.ShowPanel(ColorHelper.LightGreen,
                                 "Success buff purchase");
                             Debug.Log("Success buff purchase");
                         })
                         .Catch(exception =>
                         {
-                            InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                            InfoPanel.ShowPanel(ColorHelper.HotPink,
                                 $"Failed to purchase buff. {exception.Message}");
                         });
                 }).Catch(exception =>
                 {
-                    InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+                    InfoPanel.ShowPanel(ColorHelper.HotPink,
                         $"Failed to get user by id. {exception.Message}");
                 });
             }
             else
             {
-                InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
-                    $"You dont have enough money. Buff price is <color=#90EE90>{_buffPrice}$</color>");
+                InfoPanel.ShowPanel(ColorHelper.HotPink,
+                    $"You dont have enough money. Buff price is <color={ColorHelper.LightGreenString}>{_buffPrice}$</color>");
             }
         }).Catch(exception =>
         {
-            InfoPanel.ShowPanel(new Color32(0xFF, 0x44, 0x91, 0xFF),
+            InfoPanel.ShowPanel(ColorHelper.HotPink,
                 $"Failed to get buff price.\n{exception.Message}");
         });
     }

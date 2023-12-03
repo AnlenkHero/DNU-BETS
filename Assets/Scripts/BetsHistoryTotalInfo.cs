@@ -1,3 +1,4 @@
+using Libs.Helpers;
 using TMPro;
 using UnityEngine;
 
@@ -22,16 +23,16 @@ public class BetsHistoryTotalInfo : MonoBehaviour
             switch (percentage)
             {
                 case < 50:
-                    winPercentage.color = new Color32(0xFF, 0x69, 0xB4, 0xFF); 
-                    winToLose.color = new Color32(0xFF, 0x69, 0xB4, 0xFF);
+                    winPercentage.color = ColorHelper.HotPink; 
+                    winToLose.color = ColorHelper.HotPink;
                     break;
                 case > 50:
-                    winPercentage.color = new Color32(0x90, 0xEE, 0x90, 0xFF); 
-                    winToLose.color = new Color32(0x90, 0xEE, 0x90, 0xFF);
+                    winPercentage.color = ColorHelper.LightGreen; 
+                    winToLose.color = ColorHelper.LightGreen;
                     break;
                 default:
-                    winPercentage.color = new Color32(0xFD, 0xFD, 0x96, 0xFF);
-                    winToLose.color = new Color32(0xFD, 0xFD, 0x96, 0xFF);
+                    winPercentage.color = ColorHelper.PaleYellow;
+                    winToLose.color = ColorHelper.PaleYellow;
                     break;
             }
         }
@@ -43,7 +44,7 @@ public class BetsHistoryTotalInfo : MonoBehaviour
         }
 
         gainedMoney.text = $"{moneyGained.ToString()}$";
-        lostMoney.text = $"{moneyLost.ToString()}<color=#90EE90>$</color>";
+        lostMoney.text = $"{moneyLost.ToString()}<color={ColorHelper.LightGreenString}>$</color>";
     }
 }
 
