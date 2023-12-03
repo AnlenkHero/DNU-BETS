@@ -12,27 +12,27 @@ public class BetsHistoryTotalInfo : MonoBehaviour
     public void SetData(int betsCount, int betsWon, int betsLost, double moneyGained, double moneyLost)
     {
         totalBets.text = betsCount.ToString();
-        winToLose.text = $"{betsWon} - {betsLost}";
+        winToLose.text = $"{betsWon.ToString()} - {betsLost.ToString()}";
 
         if (betsCount > 0)
         {
             double percentage = (double)betsWon / betsCount * 100;
-            winPercentage.text = $"{percentage:F2}%";
+            winPercentage.text = $"{percentage.ToString("F2")}<color=#000000>%</color> ";
             
-            if (percentage < 50)
+            switch (percentage)
             {
-                winPercentage.color = new Color32(0xFF, 0x69, 0xB4, 0xFF); 
-                winToLose.color = new Color32(0xFF, 0x69, 0xB4, 0xFF); 
-            }
-            else if (percentage > 50)
-            {
-                winPercentage.color = new Color32(0x90, 0xEE, 0x90, 0xFF); 
-                winToLose.color = new Color32(0x90, 0xEE, 0x90, 0xFF); 
-            }
-            else 
-            {
-                winPercentage.color = new Color32(0xFD, 0xFD, 0x96, 0xFF);
-                winToLose.color = new Color32(0xFD, 0xFD, 0x96, 0xFF); 
+                case < 50:
+                    winPercentage.color = new Color32(0xFF, 0x69, 0xB4, 0xFF); 
+                    winToLose.color = new Color32(0xFF, 0x69, 0xB4, 0xFF);
+                    break;
+                case > 50:
+                    winPercentage.color = new Color32(0x90, 0xEE, 0x90, 0xFF); 
+                    winToLose.color = new Color32(0x90, 0xEE, 0x90, 0xFF);
+                    break;
+                default:
+                    winPercentage.color = new Color32(0xFD, 0xFD, 0x96, 0xFF);
+                    winToLose.color = new Color32(0xFD, 0xFD, 0x96, 0xFF);
+                    break;
             }
         }
         else
@@ -42,8 +42,8 @@ public class BetsHistoryTotalInfo : MonoBehaviour
             winToLose.color = Color.black; 
         }
 
-        gainedMoney.text = $"{moneyGained.ToString("F2")}$";
-        lostMoney.text = $"{moneyLost.ToString("F2")}$";
+        gainedMoney.text = $"{moneyGained.ToString()}$";
+        lostMoney.text = $"{moneyLost.ToString()}<color=#90EE90>$</color>";
     }
 }
 

@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 7953763302770053032}
   - component: {fileID: 5401221018829626242}
   m_Layer: 5
-  m_Name: Active status
+  m_Name: Money Lost Or Gained
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -200,7 +200,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Active: '
+  m_text: Money Lost Or Gained
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b03fdd54c532a4a4cb1ad89e1d2c0ca0, type: 2}
   m_sharedMaterial: {fileID: 8659373926764162716, guid: b03fdd54c532a4a4cb1ad89e1d2c0ca0,
@@ -228,7 +228,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 102.1
+  m_fontSize: 73.35
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -638,7 +638,7 @@ MonoBehaviour:
   contestantNameTMP: {fileID: 2661676524540209111}
   coefficientTMP: {fileID: 5685640141168527219}
   betAmountTMP: {fileID: 141925522333823692}
-  isActiveTMP: {fileID: 5401221018829626242}
+  moneyLostOrGainedTMP: {fileID: 5401221018829626242}
   isWinTMP: {fileID: 8763698139184374928}
 --- !u!1 &7432441737066356435
 GameObject:
