@@ -30,34 +30,29 @@ public class Leaderboard : MonoBehaviour
 
     private void RefreshLeaderboard()
     {
-        Color32[] colors ={ ColorHelper.PaleYellow, ColorHelper.LightGreen };
-        
-        float[] times = {0.5f, 1.0f};
-        
-        Gradient biggestGamblerGradient = GradientHelper.CreateGradient(colors, times);
+        Color32[] colors = { ColorHelper.PaleYellow, ColorHelper.LightGreen };
 
-        
+        float[] times = { 0.5f, 1.0f };
+
+        var biggestGamblerGradient = GradientHelper.CreateGradient(colors, times);
+
+
         UserRepository.GetAllUsers().Then(users =>
         {
             foreach (var user in users)
             {
                 foreach (var buff in user.buffPurchase)
-                {
                     user.balance += buff.price;
-                }
             }
 
             var topUsers = users.OrderByDescending(x => x.balance).Take(3).ToList();
 
-            int index = 0;
+            var index = 0;
             foreach (var user in topUsers)
             {
                 var leaderboardElement = Instantiate(leaderboardElementPrefab, leaderboardGrid);
                 leaderboardElement.SetData(user, topColors[index]);
-                if (index == 0)
-                {
-                    leaderboardElement.SetData(user, topColors[index],biggestGamblerGradient);
-                }
+                if (index == 0) leaderboardElement.SetData(user, topColors[index], biggestGamblerGradient);
 
                 index++;
             }
@@ -66,11 +61,6 @@ public class Leaderboard : MonoBehaviour
 
     private void ClearExistingLeaderboard()
     {
-        foreach (Transform child in leaderboardGrid)
-        {
-            Destroy(child.gameObject);
-        }
+        foreach (Transform child in leaderboardGrid) Destroy(child.gameObject);
     }
-
-
 }
