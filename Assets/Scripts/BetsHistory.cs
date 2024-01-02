@@ -15,6 +15,8 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private BetsHistoryTotalInfo betsHistoryTotalInfo;
     [SerializeField] private ScrollRect scrollRect;
     private bool _isBetsHistoryRefreshing;
+    private float _cooldownTimer;
+    private readonly float _cooldownPeriod = 10f;
 
     private void OnEnable()
     {
@@ -22,21 +24,26 @@ public class BetsHistory : MonoBehaviour
         BetsController.OnBetPosted += InitializeBetsHistory;
     }
 
-    private void OnDisable()
-    {
-        DataMapper.OnMapData -= InitializeBetsHistory;
-        BetsController.OnBetPosted -= InitializeBetsHistory;
-    }
-
     private void Start()
     {
         InitializeBetsHistory();
     }
+    
+    private void Update()
+    {
+        if (_cooldownTimer > 0)
+        {
+            _cooldownTimer -= Time.deltaTime;
+        }
+    }
 
     private void InitializeBetsHistory()
     {
-        if (!_isBetsHistoryRefreshing)
+        if (!_isBetsHistoryRefreshing && _cooldownTimer <= 0)
+        {
+            _cooldownTimer = _cooldownPeriod;
             StartCoroutine(InitializeBetsHistoryCoroutine());
+        }
     }
 
     private IEnumerator InitializeBetsHistoryCoroutine()
@@ -46,9 +53,22 @@ public class BetsHistory : MonoBehaviour
 
         Dictionary<string, Match> matchesDictionary = new Dictionary<string, Match>();
 
+        bool isTimedOut = false;
+        StartCoroutine(TimeoutCoroutine(() =>
+        {
+            isTimedOut = true;
+            _isBetsHistoryRefreshing = false;
+        }));
+
         MatchesRepository.GetAllMatches()
             .Then(matches =>
             {
+                if (isTimedOut)
+                {
+                    _isBetsHistoryRefreshing = false;
+                    return;
+                }
+
                 foreach (var match in matches)
                 {
                     matchesDictionary[match.Id] = match;
@@ -57,17 +77,31 @@ public class BetsHistory : MonoBehaviour
                 BetsRepository.GetAllBetsByUserId(UserData.UserId)
                     .Then(bets =>
                     {
+                        if (isTimedOut)
+                        {
+                            _isBetsHistoryRefreshing = false;
+                            return;
+                        }
+
                         ProcessBets(bets, matchesDictionary);
-                        _isBetsHistoryRefreshing = false;
                     })
                     .Catch(exception =>
                     {
-                        Debug.LogError(exception.Message);
                         _isBetsHistoryRefreshing = false;
+                        Debug.LogError(exception.Message);
                     })
-                    .Finally(() => scrollRect.velocity = new Vector2(0, -float.MaxValue));
+                    .Finally(() =>
+                    {
+                        _isBetsHistoryRefreshing = false;
+                        scrollRect.velocity = new Vector2(0, -float.MaxValue);
+                    });
             })
-            .Catch(exception => Debug.LogError($"Failed to load matches: {exception.Message}"));
+            .Catch(exception =>
+            {
+                _isBetsHistoryRefreshing = false;
+                Debug.LogError($"Failed to load matches: {exception.Message}");
+            })
+            .Finally(() => _isBetsHistoryRefreshing = false);
     }
 
     private void ProcessBets(List<Bet> bets, Dictionary<string, Match> matchesDictionary)
@@ -87,12 +121,6 @@ public class BetsHistory : MonoBehaviour
             }
 
             var contestant = match.Contestants.FirstOrDefault(c => c.Id == bet.ContestantId);
-            if (contestant == null)
-            {
-                Debug.LogError($"Contestant with ID {bet.ContestantId} not found in match {bet.MatchId}.");
-                continue;
-            }
-
             var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
             var dateTime = DateTime.TryParseExact(match.FinishedDateUtc, "MM/dd/yyyy HH:mm:ss",
                 CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue)
@@ -123,6 +151,7 @@ public class BetsHistory : MonoBehaviour
         }
 
         betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
+        _isBetsHistoryRefreshing = false;
     }
 
     private IEnumerator ClearExistingBetsHistory()
@@ -133,5 +162,11 @@ public class BetsHistory : MonoBehaviour
         }
 
         yield return new WaitForSeconds(0.5f);
+    }
+
+    private IEnumerator TimeoutCoroutine(Action onTimeout, float timeoutSeconds = 30f)
+    {
+        yield return new WaitForSeconds(timeoutSeconds);
+        onTimeout?.Invoke();
     }
 }
