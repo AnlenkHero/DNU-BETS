@@ -167,6 +167,31 @@ namespace Libs.Repositories
                 });
             });
         }
+        
+        public static Promise<List<Match>> GetAllMatches()
+        {
+            return new Promise<List<Match>>((resolve, reject) =>
+            {
+                string url = $"{FirebaseDbUrl}matches.json";
+
+                RestClient.Get(url).Then(response =>
+                {
+                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                    if (rawMatches == null || !rawMatches.Any())
+                    {
+                        reject(new Exception("No matches found"));
+                        return;
+                    }
+
+                    List<Match> matches = ExtractMatchesFromRawData(rawMatches);
+                    resolve(matches);
+                }).Catch(error =>
+                {
+                    reject(new Exception($"Error retrieving all matches: {error.Message}"));
+                });
+            });
+        }
+
         public static Promise<List<Match>> GetBettingAvailableMatches()
         {
             return new Promise<List<Match>>((resolve, reject) =>

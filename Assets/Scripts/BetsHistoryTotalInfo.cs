@@ -31,8 +31,8 @@ public class BetsHistoryTotalInfo : MonoBehaviour
                     winToLose.color = ColorHelper.LightGreen;
                     break;
                 default:
-                    winPercentage.color = ColorHelper.PaleYellow;
-                    winToLose.color = ColorHelper.PaleYellow;
+                    winPercentage.color = ColorHelper.Orange;
+                    winToLose.color = ColorHelper.Orange;
                     break;
             }
         }

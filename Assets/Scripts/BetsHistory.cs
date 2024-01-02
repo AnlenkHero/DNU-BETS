@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Libs.Models;
 using Libs.Repositories;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +15,6 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private BetsHistoryTotalInfo betsHistoryTotalInfo;
     [SerializeField] private ScrollRect scrollRect;
     private bool _isBetsHistoryRefreshing;
-
 
     private void OnEnable()
     {
@@ -43,63 +43,86 @@ public class BetsHistory : MonoBehaviour
     {
         _isBetsHistoryRefreshing = true;
         yield return StartCoroutine(ClearExistingBetsHistory());
-        BetsRepository.GetAllBetsByUserId(UserData.UserId)
-            .Then(bets =>
-            {
-                var betHistoryElements = new List<BetHistoryElement>();
-                var betsToProcess = bets.Count;
-                var betsWon = 0;
-                var betsLost = 0;
-                double moneyGained = 0;
-                double moneyLost = 0;
 
-                foreach (var bet in bets)
+        Dictionary<string, Match> matchesDictionary = new Dictionary<string, Match>();
+
+        MatchesRepository.GetAllMatches()
+            .Then(matches =>
+            {
+                foreach (var match in matches)
                 {
-                    MatchesRepository.GetMatchById(bet.MatchId).Then(match =>
-                    {
-                        var contestant =
-                            match.Contestants.FirstOrDefault(contestant => contestant.Id == bet.ContestantId);
-                        var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
-                        var dateTime = DateTime.TryParseExact(match.FinishedDateUtc, "MM/dd/yyyy HH:mm:ss",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue)
-                            ? dateValue
-                            : DateTime.Now;
-
-                        tempBetHistoryElement.SetData(match.MatchTitle, contestant.Name, contestant.Coefficient,
-                            bet.BetAmount, bet.IsActive, contestant.Winner, dateTime, match.IsMatchCanceled);
-
-                        betHistoryElements.Add(tempBetHistoryElement);
-
-                        if (contestant.Winner)
-                        {
-                            betsWon++;
-                            moneyGained += contestant.Coefficient * bet.BetAmount;
-                        }
-                        else if (!bet.IsActive)
-                        {
-                            moneyLost -= bet.BetAmount;
-                            betsLost++;
-                        }
-
-                        betsToProcess--;
-                        if (betsToProcess != 0) return;
-                        betHistoryElements.Sort((a, b) => b.Date.CompareTo(a.Date));
-                        for (var i = 0; i < betHistoryElements.Count; i++)
-                        {
-                            betHistoryElements[i].transform.SetSiblingIndex(i);
-                        }
-
-                        betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
-                        scrollRect.normalizedPosition = new Vector2(0, 1.5f);
-                        _isBetsHistoryRefreshing = false;
-                    });
+                    matchesDictionary[match.Id] = match;
                 }
+
+                BetsRepository.GetAllBetsByUserId(UserData.UserId)
+                    .Then(bets =>
+                    {
+                        ProcessBets(bets, matchesDictionary);
+                        _isBetsHistoryRefreshing = false;
+                    })
+                    .Catch(exception =>
+                    {
+                        Debug.LogError(exception.Message);
+                        _isBetsHistoryRefreshing = false;
+                    })
+                    .Finally(() => scrollRect.velocity = new Vector2(0, -float.MaxValue));
             })
-            .Catch(exception =>
+            .Catch(exception => Debug.LogError($"Failed to load matches: {exception.Message}"));
+    }
+
+    private void ProcessBets(List<Bet> bets, Dictionary<string, Match> matchesDictionary)
+    {
+        var betHistoryElements = new List<BetHistoryElement>();
+        var betsWon = 0;
+        var betsLost = 0;
+        double moneyGained = 0;
+        double moneyLost = 0;
+
+        foreach (var bet in bets)
+        {
+            if (!matchesDictionary.TryGetValue(bet.MatchId, out var match))
             {
-                Debug.LogError(exception.Message);
-                _isBetsHistoryRefreshing = false;
-            });
+                Debug.LogError($"Match with ID {bet.MatchId} not found.");
+                continue;
+            }
+
+            var contestant = match.Contestants.FirstOrDefault(c => c.Id == bet.ContestantId);
+            if (contestant == null)
+            {
+                Debug.LogError($"Contestant with ID {bet.ContestantId} not found in match {bet.MatchId}.");
+                continue;
+            }
+
+            var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
+            var dateTime = DateTime.TryParseExact(match.FinishedDateUtc, "MM/dd/yyyy HH:mm:ss",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue)
+                ? dateValue
+                : DateTime.Now;
+
+            tempBetHistoryElement.SetData(match.MatchTitle, contestant.Name, contestant.Coefficient, bet.BetAmount,
+                bet.IsActive, contestant.Winner, dateTime, match.IsMatchCanceled);
+
+            betHistoryElements.Add(tempBetHistoryElement);
+
+            if (contestant.Winner)
+            {
+                betsWon++;
+                moneyGained += contestant.Coefficient * bet.BetAmount;
+            }
+            else if (!bet.IsActive)
+            {
+                moneyLost -= bet.BetAmount;
+                betsLost++;
+            }
+        }
+
+        betHistoryElements.Sort((a, b) => b.Date.CompareTo(a.Date));
+        foreach (var element in betHistoryElements)
+        {
+            element.transform.SetSiblingIndex(betHistoryParent.childCount);
+        }
+
+        betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
     }
 
     private IEnumerator ClearExistingBetsHistory()
