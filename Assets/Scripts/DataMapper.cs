@@ -16,14 +16,14 @@ public class DataMapper : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private GameObject noMatchesPanel;
     [SerializeField] private SwipeMenu swipeMenu;
-    [SerializeField] private Button updateMatchesButton;
+    [SerializeField] private Button updateButton;
     public static bool MatchesAvailable;
 
     public static event Action OnMapData;
 
     private void Awake()
     {
-        updateMatchesButton.onClick.AddListener(MapData);
+        updateButton.onClick.AddListener(MapData);
     }
 
     private void OnEnable()

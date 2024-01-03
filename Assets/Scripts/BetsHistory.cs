@@ -14,9 +14,12 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private Transform betHistoryParent;
     [SerializeField] private BetsHistoryTotalInfo betsHistoryTotalInfo;
     [SerializeField] private ScrollRect scrollRect;
+    [SerializeField] private GameObject skeletonLoading;
+    [SerializeField] private Button refreshButton;
+    [SerializeField] private GameObject waitingObject;
     private bool _isBetsHistoryRefreshing;
     private float _cooldownTimer;
-    private readonly float _cooldownPeriod = 10f;
+    private readonly float _cooldownPeriod = 3f;
 
     private void OnEnable()
     {
@@ -26,6 +29,7 @@ public class BetsHistory : MonoBehaviour
 
     private void Start()
     {
+        refreshButton.onClick.AddListener(InitializeBetsHistory);
         InitializeBetsHistory();
     }
     
@@ -48,10 +52,13 @@ public class BetsHistory : MonoBehaviour
 
     private IEnumerator InitializeBetsHistoryCoroutine()
     {
+        waitingObject.SetActive(true);
         _isBetsHistoryRefreshing = true;
+        skeletonLoading.SetActive(true);
+        
         yield return StartCoroutine(ClearExistingBetsHistory());
 
-        Dictionary<string, Match> matchesDictionary = new Dictionary<string, Match>();
+        List<Match> matchesList = new ();
 
         bool isTimedOut = false;
         StartCoroutine(TimeoutCoroutine(() =>
@@ -69,10 +76,7 @@ public class BetsHistory : MonoBehaviour
                     return;
                 }
 
-                foreach (var match in matches)
-                {
-                    matchesDictionary[match.Id] = match;
-                }
+                matchesList = matches;
 
                 BetsRepository.GetAllBetsByUserId(UserData.UserId)
                     .Then(bets =>
@@ -83,7 +87,7 @@ public class BetsHistory : MonoBehaviour
                             return;
                         }
 
-                        ProcessBets(bets, matchesDictionary);
+                        ProcessBets(bets, matchesList);
                     })
                     .Catch(exception =>
                     {
@@ -93,7 +97,6 @@ public class BetsHistory : MonoBehaviour
                     .Finally(() =>
                     {
                         _isBetsHistoryRefreshing = false;
-                        scrollRect.velocity = new Vector2(0, -float.MaxValue);
                     });
             })
             .Catch(exception =>
@@ -101,10 +104,16 @@ public class BetsHistory : MonoBehaviour
                 _isBetsHistoryRefreshing = false;
                 Debug.LogError($"Failed to load matches: {exception.Message}");
             })
-            .Finally(() => _isBetsHistoryRefreshing = false);
+            .Finally(() =>
+            {
+                _isBetsHistoryRefreshing = false;
+            });
+        yield return new WaitForSeconds(1f);
+        waitingObject.SetActive(false);
+        scrollRect.normalizedPosition = new Vector2(0,1.0f);
     }
 
-    private void ProcessBets(List<Bet> bets, Dictionary<string, Match> matchesDictionary)
+    private void ProcessBets(List<Bet> bets, List<Match> matches)
     {
         var betHistoryElements = new List<BetHistoryElement>();
         var betsWon = 0;
@@ -114,12 +123,7 @@ public class BetsHistory : MonoBehaviour
 
         foreach (var bet in bets)
         {
-            if (!matchesDictionary.TryGetValue(bet.MatchId, out var match))
-            {
-                Debug.LogError($"Match with ID {bet.MatchId} not found.");
-                continue;
-            }
-
+            Match match = matches.FirstOrDefault(x => x.Id == bet.MatchId);
             var contestant = match.Contestants.FirstOrDefault(c => c.Id == bet.ContestantId);
             var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
             var dateTime = DateTime.TryParseExact(match.FinishedDateUtc, "MM/dd/yyyy HH:mm:ss",
@@ -152,6 +156,7 @@ public class BetsHistory : MonoBehaviour
 
         betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
         _isBetsHistoryRefreshing = false;
+        skeletonLoading.SetActive(false);
     }
 
     private IEnumerator ClearExistingBetsHistory()
