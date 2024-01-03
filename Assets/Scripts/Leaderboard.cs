@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Linq;
 using Libs.Helpers;
@@ -11,6 +12,11 @@ public class Leaderboard : MonoBehaviour
 
     [SerializeField]
     private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
+
+    private void OnEnable()
+    {
+        NetworkCheck.OnInternetEstablished += () => StartCoroutine(LeaderBoardCoroutine());
+    }
 
     private void Start()
     {
