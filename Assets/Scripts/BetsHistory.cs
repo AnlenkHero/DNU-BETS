@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using Libs.Models;
 using Libs.Repositories;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +18,7 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private GameObject skeletonLoading;
     [SerializeField] private Button refreshButton;
     [SerializeField] private GameObject waitingObject;
+    [SerializeField] private TextMeshProUGUI betHistoryErrorTMP;
     private bool _isBetsHistoryRefreshing;
     private float _cooldownTimer;
     private readonly float _cooldownPeriod = 3f;
@@ -52,6 +54,8 @@ public class BetsHistory : MonoBehaviour
 
     private IEnumerator InitializeBetsHistoryCoroutine()
     {
+        betHistoryErrorTMP.gameObject.SetActive(false);
+        refreshButton.gameObject.SetActive(false);
         waitingObject.SetActive(true);
         _isBetsHistoryRefreshing = true;
         skeletonLoading.SetActive(true);
@@ -92,6 +96,9 @@ public class BetsHistory : MonoBehaviour
                     .Catch(exception =>
                     {
                         _isBetsHistoryRefreshing = false;
+                        betHistoryErrorTMP.gameObject.SetActive(true);
+                        betHistoryErrorTMP.text = exception.Message;
+                        refreshButton.gameObject.SetActive(true);
                         Debug.LogError(exception.Message);
                     })
                     .Finally(() =>
@@ -102,13 +109,18 @@ public class BetsHistory : MonoBehaviour
             .Catch(exception =>
             {
                 _isBetsHistoryRefreshing = false;
+                betHistoryErrorTMP.gameObject.SetActive(true);
+                betHistoryErrorTMP.text = exception.Message;
+                refreshButton.gameObject.SetActive(true);
                 Debug.LogError($"Failed to load matches: {exception.Message}");
             })
             .Finally(() =>
             {
                 _isBetsHistoryRefreshing = false;
             });
+        
         yield return new WaitForSeconds(1f);
+        skeletonLoading.SetActive(false);
         waitingObject.SetActive(false);
         scrollRect.normalizedPosition = new Vector2(0,1.0f);
     }
@@ -156,7 +168,6 @@ public class BetsHistory : MonoBehaviour
 
         betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
         _isBetsHistoryRefreshing = false;
-        skeletonLoading.SetActive(false);
     }
 
     private IEnumerator ClearExistingBetsHistory()
