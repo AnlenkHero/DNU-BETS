@@ -39,7 +39,7 @@ public class BetsHistory : MonoBehaviour
         ClearExistingBetsHistory();
         FetchAndProcessBets();
     }
-    
+
 
     private void FetchAndProcessBets()
     {
@@ -106,7 +106,7 @@ public class BetsHistory : MonoBehaviour
 
 
         betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
-        
+
         SetLoadingState(false);
         StartCoroutine(ScrollToTop());
     }
@@ -147,5 +147,4 @@ public class BetsHistory : MonoBehaviour
             Destroy(child.gameObject);
         }
     }
-    
 }

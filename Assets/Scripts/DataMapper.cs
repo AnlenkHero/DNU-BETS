@@ -20,7 +20,6 @@ public class DataMapper : MonoBehaviour
     public static bool MatchesAvailable;
     private float _cooldownTimer;
     private readonly float _cooldownPeriod = 3f;
-    public static bool BetsUpdated { get; private set; }
 
     public static event Action OnMapData;
 
@@ -46,7 +45,6 @@ public class DataMapper : MonoBehaviour
     {
         if (!(_cooldownTimer <= 0)) return;
         
-        BetsUpdated = false;
         _cooldownTimer = _cooldownPeriod;
 
         noMatchesPanel.SetActive(false);
@@ -60,14 +58,12 @@ public class DataMapper : MonoBehaviour
                     .Then(bets =>
                     {
                         BetCache.Bets = bets;
-                        BetsUpdated = true;
                         OnMapData?.Invoke();
                     })
                     .Catch(exception => Debug.LogError(exception.Message))
                     .Finally(() => CreateMatchViews(matches));
             }).Catch(exception =>
             {
-                BetsUpdated = true;
                 MatchesAvailable = false;
                 Debug.LogError(exception.Message);
                 dataMapperSkeletonLoading.SetActive(false);
