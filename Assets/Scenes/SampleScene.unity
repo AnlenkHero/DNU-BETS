@@ -6775,6 +6775,8 @@ MonoBehaviour:
   leaderboardElementPrefab: {fileID: 5491079056844629986, guid: 5a843667e9184224499805f491fb03fb,
     type: 3}
   leaderboardSkeletonLoading: {fileID: 1485002909}
+  biggestGamblerMaterial: {fileID: 2100000, guid: b29dc1c751f382043a23bf0545ed2118,
+    type: 2}
   topColors:
   - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   - {r: 0.5, g: 0.5, b: 0.5, a: 1}
@@ -9649,7 +9651,6 @@ MonoBehaviour:
   refreshButton: {fileID: 1768730966}
   waitingObject: {fileID: 1092906020}
   betHistoryErrorTMP: {fileID: 1362216296}
-  timeoutSeconds: 30
 --- !u!4 &2069917444
 Transform:
   m_ObjectHideFlags: 0

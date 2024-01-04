@@ -9,6 +9,7 @@ public class Leaderboard : MonoBehaviour
     [SerializeField] private Transform leaderboardGrid;
     [SerializeField] private LeaderboardElement leaderboardElementPrefab;
     [SerializeField] private GameObject leaderboardSkeletonLoading;
+    [SerializeField] private Material biggestGamblerMaterial;
     [SerializeField]
     private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
 
@@ -61,7 +62,7 @@ public class Leaderboard : MonoBehaviour
                 leaderboardElement.SetData(user, topColors[index]);
 
                 if (index == 0)
-                    leaderboardElement.SetData(user, topColors[index], _biggestGamblerGradient);
+                    leaderboardElement.SetData(user, topColors[index], _biggestGamblerGradient, biggestGamblerMaterial);
 
                 index++;
             }
