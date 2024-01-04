@@ -19,9 +19,10 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private Button refreshButton;
     [SerializeField] private GameObject waitingObject;
     [SerializeField] private TextMeshProUGUI betHistoryErrorTMP;
+    [SerializeField] private float timeoutSeconds = 30f;
     private bool _isBetsHistoryRefreshing;
-    private float _cooldownTimer;
-    private readonly float _cooldownPeriod = 3f;
+    private bool _isOperationSuccess;
+
 
     private void OnEnable()
     {
@@ -34,37 +35,43 @@ public class BetsHistory : MonoBehaviour
         refreshButton.onClick.AddListener(RefreshBetsHistory);
         RefreshBetsHistory();
     }
-    
-    private void Update()
-    {
-        if (_cooldownTimer > 0)
-        {
-            _cooldownTimer -= Time.deltaTime;
-        }
-    }
 
     private void RefreshBetsHistory()
     {
-        if (_isBetsHistoryRefreshing ) return;
-        
-        _cooldownTimer = _cooldownPeriod;
-        SetLoadingState(true);
+        if (_isBetsHistoryRefreshing) return;
+        if (!UserData.IsUserDataLoaded())
+        {
+            StartCoroutine(WaitForUserDataAndRefresh());
+            return;
+        }
         ClearExistingBetsHistory();
+        SetLoadingState(true);
         FetchAndProcessBets();
     }
-    
 
     private void FetchAndProcessBets()
     {
+        _isOperationSuccess = false;
+        StartCoroutine(TimeoutCoroutine(OnFetchAndProcessBetsTimeout, timeoutSeconds));
+
         MatchesRepository.GetAllMatches()
             .Then(matches =>
             {
                 BetsRepository.GetAllBetsByUserId(UserData.UserId)
                     .Then(bets => ProcessBets(bets, matches))
-                    .Catch(exception => HandleError(exception.Message));
+                    .Catch(exception =>
+                    {
+                        SetLoadingState(false);
+                        HandleError(exception.Message);
+                    });
             })
-            .Catch(exception => HandleError(exception.Message));
+            .Catch(exception =>
+            {
+                SetLoadingState(false);
+                HandleError(exception.Message);
+            });
     }
+
     private void ProcessBets(List<Bet> bets, List<Match> matches)
     {
         var betHistoryElements = new List<BetHistoryElement>();
@@ -72,7 +79,7 @@ public class BetsHistory : MonoBehaviour
         var betsLost = 0;
         double moneyGained = 0;
         double moneyLost = 0;
-        
+
         foreach (var bet in bets)
         {
             Match match = matches.FirstOrDefault(x => x.Id == bet.MatchId);
@@ -83,7 +90,7 @@ public class BetsHistory : MonoBehaviour
                 : DateTime.Now;
 
             var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
-            
+
             tempBetHistoryElement.SetData(match.MatchTitle, contestant.Name, contestant.Coefficient, bet.BetAmount,
                 bet.IsActive, contestant.Winner, dateTime, match.IsMatchCanceled);
 
@@ -100,7 +107,7 @@ public class BetsHistory : MonoBehaviour
                 betsLost++;
             }
         }
-        
+
         betHistoryElements.Sort((a, b) => b.Date.CompareTo(a.Date));
         for (var i = 0; i < betHistoryElements.Count; i++)
         {
@@ -109,7 +116,8 @@ public class BetsHistory : MonoBehaviour
 
 
         betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
-        
+
+        _isOperationSuccess = true;
         SetLoadingState(false);
         StartCoroutine(ScrollToTop());
     }
@@ -119,7 +127,7 @@ public class BetsHistory : MonoBehaviour
         yield return new WaitForEndOfFrame();
         scrollRect.normalizedPosition = new Vector2(0, 1.0f);
     }
-    
+
     private void HandleError(string message)
     {
         _isBetsHistoryRefreshing = false;
@@ -128,12 +136,12 @@ public class BetsHistory : MonoBehaviour
         refreshButton.gameObject.SetActive(true);
         Debug.LogError(message);
     }
-    
+
     private void SetLoadingState(bool isLoading)
     {
         skeletonLoading.SetActive(isLoading);
         waitingObject.SetActive(isLoading);
-        
+
         if (!isLoading)
         {
             betHistoryErrorTMP.gameObject.SetActive(false);
@@ -142,12 +150,31 @@ public class BetsHistory : MonoBehaviour
 
         _isBetsHistoryRefreshing = isLoading;
     }
-    
+
     private void ClearExistingBetsHistory()
     {
         foreach (Transform child in betHistoryParent)
         {
             Destroy(child.gameObject);
         }
+    }
+
+    private IEnumerator TimeoutCoroutine(Action onTimeout, float timeoutSeconds)
+    {
+        yield return new WaitForSeconds(timeoutSeconds);
+        onTimeout?.Invoke();
+    }
+
+    private IEnumerator WaitForUserDataAndRefresh()
+    {
+        yield return new WaitUntil(UserData.IsUserDataLoaded);
+        RefreshBetsHistory();
+    }
+    private void OnFetchAndProcessBetsTimeout()
+    {
+        if(_isOperationSuccess && !_isBetsHistoryRefreshing)
+            return;
+        SetLoadingState(false);
+        HandleError("Fetching and processing bets timed out.");
     }
 }

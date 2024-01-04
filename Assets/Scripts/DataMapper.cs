@@ -16,15 +16,12 @@ public class DataMapper : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private GameObject noMatchesPanel;
     [SerializeField] private SwipeMenu swipeMenu;
-    [SerializeField] private Button updateButton;
+    [SerializeField] private Button refreshButton;
     public static bool MatchesAvailable;
-
+    private float _cooldownTimer;
+    private readonly float _cooldownPeriod = 3f;
+    
     public static event Action OnMapData;
-
-    private void Awake()
-    {
-        updateButton.onClick.AddListener(MapData);
-    }
 
     private void OnEnable()
     {
@@ -32,45 +29,45 @@ public class DataMapper : MonoBehaviour
         FirebaseGoogleLogin.OnLoginFinished += () => StartCoroutine(InitializeUserData());
         NetworkCheck.OnInternetEstablished += MapData;
     }
+    private void Awake()
+    {
+        refreshButton.onClick.AddListener(MapData);
+    }
+
+    private void Update()
+    { 
+        if (_cooldownTimer > 0)
+            _cooldownTimer -= Time.deltaTime;
+    }
     
     public void MapData()
     {
-        StartCoroutine(MapDataCoroutine());
-        OnMapData?.Invoke();
-    }
-
-    private IEnumerator MapDataOverTime()
-    {
-        while (true)
-        {
-            StartCoroutine(MapDataCoroutine());
-            yield return new WaitForSeconds(100f);
-        }
-    }
-
-    private IEnumerator MapDataCoroutine()
-    {
+        if (!(_cooldownTimer <= 0)) return;
+        
+        _cooldownTimer = _cooldownPeriod;
+        
         BetCache.Bets = new List<Bet>();
-        yield return StartCoroutine(ClearExistingMatches());
+        
+        ClearExistingMatches();
+        
         MatchesRepository.GetBettingAvailableMatches()
             .Then(matches =>
             {
                 BetsRepository.GetAllBetsByUserId(UserData.UserId)
                     .Then(bets => BetCache.Bets = bets)
                     .Catch(exception => Debug.LogError(exception.Message))
-                    .Finally(() => StartCoroutine(CreateMatchViews(matches)));
+                    .Finally(() => CreateMatchViews(matches));
             }).Catch(exception =>
             {
                 MatchesAvailable = false;
                 Debug.LogError(exception.Message);
             });
+        
+        OnMapData?.Invoke();
     }
-
-
-    private IEnumerator CreateMatchViews(List<Match> matches)
+    
+    private void CreateMatchViews(List<Match> matches)
     {
-        yield return new WaitForSeconds(0.5f);
-        yield return StartCoroutine(ClearExistingMatches());
         if (matches.Count == 0)
             Instantiate(noMatchesPanel,matchPanelParent);
         else
@@ -86,14 +83,12 @@ public class DataMapper : MonoBehaviour
         }
     }
 
-    private IEnumerator ClearExistingMatches()
+    private void ClearExistingMatches()
     {
         foreach (Transform child in matchPanelParent)
         {
             Destroy(child.gameObject);
         }
-        
-        yield return new WaitForEndOfFrame();
     }
 
     private IEnumerator InitializeUserData()

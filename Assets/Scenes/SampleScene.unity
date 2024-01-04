@@ -1929,7 +1929,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'UPDATE '
+  m_text: REFRESH
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b03fdd54c532a4a4cb1ad89e1d2c0ca0, type: 2}
   m_sharedMaterial: {fileID: 8659373926764162716, guid: b03fdd54c532a4a4cb1ad89e1d2c0ca0,
@@ -1957,7 +1957,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 123.55
+  m_fontSize: 106.45
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -4032,7 +4032,7 @@ GameObject:
   - component: {fileID: 859605569}
   - component: {fileID: 859605568}
   m_Layer: 5
-  m_Name: Update  Button
+  m_Name: Refressh Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7775,7 +7775,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 1900.0004, y: -0.00024414062}
+  m_AnchoredPosition: {x: 1900.0002, y: -0.00024414062}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1776453862
@@ -8341,7 +8341,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 1919.9998
+  m_MinWidth: 1919.9999
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
@@ -9207,7 +9207,7 @@ MonoBehaviour:
   noMatchesPanel: {fileID: 7475351516824491966, guid: 9d19486ad04a28544a4851f823ded2c1,
     type: 3}
   swipeMenu: {fileID: 0}
-  updateButton: {fileID: 859605568}
+  refreshButton: {fileID: 859605568}
 --- !u!224 &44443971487484719
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9442,7 +9442,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 1919.9998
+  m_MinWidth: 1919.9999
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
@@ -9665,7 +9665,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 1919.9998
+  m_MinWidth: 1919.9999
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
