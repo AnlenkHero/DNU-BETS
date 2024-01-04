@@ -461,7 +461,7 @@ GameObject:
   - component: {fileID: 4146911797698586531}
   - component: {fileID: 3104999918574802843}
   - component: {fileID: 5279883075358560602}
-  - component: {fileID: 7975193964756064060}
+  - component: {fileID: 1085666709825669395}
   m_Layer: 5
   m_Name: BetHistoryLoadingElement
   m_TagString: Untagged
@@ -532,7 +532,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &7975193964756064060
+--- !u!114 &1085666709825669395
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

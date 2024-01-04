@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Linq;
 using Libs.Helpers;
@@ -9,7 +8,7 @@ public class Leaderboard : MonoBehaviour
 {
     [SerializeField] private Transform leaderboardGrid;
     [SerializeField] private LeaderboardElement leaderboardElementPrefab;
-
+    [SerializeField] private GameObject leaderboardSkeletonLoading;
     [SerializeField]
     private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
 
@@ -44,6 +43,7 @@ public class Leaderboard : MonoBehaviour
 
     private void RefreshLeaderboard()
     {
+        leaderboardSkeletonLoading.SetActive(true);
         UserRepository.GetAllUsers().Then(users =>
         {
             foreach (var user in users)
@@ -65,11 +65,13 @@ public class Leaderboard : MonoBehaviour
 
                 index++;
             }
+            leaderboardSkeletonLoading.SetActive(false);
         });
     }
 
     private void ClearExistingLeaderboard()
     {
-        foreach (Transform child in leaderboardGrid) Destroy(child.gameObject);
+        foreach (Transform child in leaderboardGrid) 
+            Destroy(child.gameObject);
     }
 }

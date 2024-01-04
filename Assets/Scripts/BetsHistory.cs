@@ -19,9 +19,7 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private Button refreshButton;
     [SerializeField] private GameObject waitingObject;
     [SerializeField] private TextMeshProUGUI betHistoryErrorTMP;
-    [SerializeField] private float timeoutSeconds = 30f;
     private bool _isBetsHistoryRefreshing;
-    private bool _isOperationSuccess;
 
 
     private void OnEnable()
@@ -33,37 +31,29 @@ public class BetsHistory : MonoBehaviour
     private void Start()
     {
         refreshButton.onClick.AddListener(RefreshBetsHistory);
-        RefreshBetsHistory();
     }
 
     private void RefreshBetsHistory()
     {
         if (_isBetsHistoryRefreshing) return;
-        if (!UserData.IsUserDataLoaded())
-        {
-            StartCoroutine(WaitForUserDataAndRefresh());
-            return;
-        }
         ClearExistingBetsHistory();
-        SetLoadingState(true);
         FetchAndProcessBets();
     }
+    
 
     private void FetchAndProcessBets()
     {
-        _isOperationSuccess = false;
-        StartCoroutine(TimeoutCoroutine(OnFetchAndProcessBetsTimeout, timeoutSeconds));
-
+        SetLoadingState(true);
         MatchesRepository.GetAllMatches()
             .Then(matches =>
             {
-                BetsRepository.GetAllBetsByUserId(UserData.UserId)
-                    .Then(bets => ProcessBets(bets, matches))
-                    .Catch(exception =>
-                    {
-                        SetLoadingState(false);
-                        HandleError(exception.Message);
-                    });
+                if (BetCache.Bets != null)
+                    ProcessBets(BetCache.Bets, matches);
+                else
+                {
+                    SetLoadingState(false);
+                    HandleError("No bets found for user");
+                }
             })
             .Catch(exception =>
             {
@@ -116,8 +106,7 @@ public class BetsHistory : MonoBehaviour
 
 
         betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
-
-        _isOperationSuccess = true;
+        
         SetLoadingState(false);
         StartCoroutine(ScrollToTop());
     }
@@ -158,23 +147,5 @@ public class BetsHistory : MonoBehaviour
             Destroy(child.gameObject);
         }
     }
-
-    private IEnumerator TimeoutCoroutine(Action onTimeout, float timeoutSeconds)
-    {
-        yield return new WaitForSeconds(timeoutSeconds);
-        onTimeout?.Invoke();
-    }
-
-    private IEnumerator WaitForUserDataAndRefresh()
-    {
-        yield return new WaitUntil(UserData.IsUserDataLoaded);
-        RefreshBetsHistory();
-    }
-    private void OnFetchAndProcessBetsTimeout()
-    {
-        if(_isOperationSuccess && !_isBetsHistoryRefreshing)
-            return;
-        SetLoadingState(false);
-        HandleError("Fetching and processing bets timed out.");
-    }
+    
 }

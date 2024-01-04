@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Libs.Models;
 using Libs.Repositories;
 using TMPro;
 using UnityEngine;
@@ -17,10 +16,12 @@ public class DataMapper : MonoBehaviour
     [SerializeField] private GameObject noMatchesPanel;
     [SerializeField] private SwipeMenu swipeMenu;
     [SerializeField] private Button refreshButton;
+    [SerializeField] private GameObject dataMapperSkeletonLoading;
     public static bool MatchesAvailable;
     private float _cooldownTimer;
     private readonly float _cooldownPeriod = 3f;
-    
+    public static bool BetsUpdated { get; private set; }
+
     public static event Action OnMapData;
 
     private void OnEnable()
@@ -29,47 +30,54 @@ public class DataMapper : MonoBehaviour
         FirebaseGoogleLogin.OnLoginFinished += () => StartCoroutine(InitializeUserData());
         NetworkCheck.OnInternetEstablished += MapData;
     }
+
     private void Awake()
     {
         refreshButton.onClick.AddListener(MapData);
     }
 
     private void Update()
-    { 
+    {
         if (_cooldownTimer > 0)
             _cooldownTimer -= Time.deltaTime;
     }
-    
+
     public void MapData()
     {
         if (!(_cooldownTimer <= 0)) return;
         
+        BetsUpdated = false;
         _cooldownTimer = _cooldownPeriod;
-        
-        BetCache.Bets = new List<Bet>();
-        
+
+        noMatchesPanel.SetActive(false);
+        dataMapperSkeletonLoading.SetActive(true);
         ClearExistingMatches();
-        
+
         MatchesRepository.GetBettingAvailableMatches()
             .Then(matches =>
             {
                 BetsRepository.GetAllBetsByUserId(UserData.UserId)
-                    .Then(bets => BetCache.Bets = bets)
+                    .Then(bets =>
+                    {
+                        BetCache.Bets = bets;
+                        BetsUpdated = true;
+                        OnMapData?.Invoke();
+                    })
                     .Catch(exception => Debug.LogError(exception.Message))
                     .Finally(() => CreateMatchViews(matches));
             }).Catch(exception =>
             {
+                BetsUpdated = true;
                 MatchesAvailable = false;
                 Debug.LogError(exception.Message);
+                dataMapperSkeletonLoading.SetActive(false);
             });
-        
-        OnMapData?.Invoke();
     }
-    
+
     private void CreateMatchViews(List<Match> matches)
     {
         if (matches.Count == 0)
-            Instantiate(noMatchesPanel,matchPanelParent);
+            noMatchesPanel.SetActive(true);
         else
         {
             foreach (var match in matches)
@@ -81,6 +89,7 @@ public class DataMapper : MonoBehaviour
 
             MatchesAvailable = true;
         }
+        dataMapperSkeletonLoading.SetActive(false);
     }
 
     private void ClearExistingMatches()
@@ -97,10 +106,9 @@ public class DataMapper : MonoBehaviour
         {
             nameText.text = UserData.Name;
             UserRepository.GetUserBalanceById(UserData.UserId)
-                .Then(balance => { moneyView.Balance=balance; })
-                .Catch(Debug.LogError); 
+                .Then(balance => { moneyView.Balance = balance; })
+                .Catch(Debug.LogError);
             yield return new WaitForSeconds(10f);
         }
     }
-
 }

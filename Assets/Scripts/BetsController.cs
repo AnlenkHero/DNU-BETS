@@ -1,5 +1,6 @@
 ﻿using System;
 using Libs.Helpers;
+using Libs.Models;
 using Libs.Models.RequestModels;
 using Libs.Repositories;
 using UnityEngine;
@@ -11,7 +12,7 @@ public class BetsController : MonoBehaviour
     [SerializeField] private DataMapper dataMapper;
     private BetButtonEventArgs _betButtonEventArgs;
 
-    public static event Action OnBetPosted; 
+    public static event Action OnBetPosted;
 
     private void OnEnable()
     {
@@ -45,7 +46,9 @@ public class BetsController : MonoBehaviour
                 {
                     InfoPanel.ShowPanel(ColorHelper.LightGreen,
                         $"Bet has been successfully made. \nContestant name: {_betButtonEventArgs.Contestant.Name} \nBet amount: {betAmount}$ \nCoefficient: {_betButtonEventArgs.Contestant.Coefficient}");
+
                     var tempBalance = moneyView.Balance - betAmount;
+
                     UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
                     {
                         user.balance = tempBalance;
@@ -64,7 +67,16 @@ public class BetsController : MonoBehaviour
                         InfoPanel.ShowPanel(ColorHelper.HotPink,
                             $"Error to get user by id. {exception.Message}");
                     });
+
+                    Bet newBet = new()
+                    {
+                        BetId = betId, MatchId = newBetRequest.MatchId, IsActive = newBetRequest.IsActive,
+                        BetAmount = newBetRequest.BetAmount, ContestantId = newBetRequest.ContestantId,
+                        UserId = newBetRequest.UserId
+                    };
                     
+                    BetCache.Bets.Add(newBet);
+
                     OnBetPosted?.Invoke();
                 }).Catch(exception =>
                 {
