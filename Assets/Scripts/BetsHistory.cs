@@ -45,31 +45,16 @@ public class BetsHistory : MonoBehaviour
 
     private void RefreshBetsHistory()
     {
-        if (!_isBetsHistoryRefreshing && _cooldownTimer <= 0)
-        {
-            _cooldownTimer = _cooldownPeriod;
-            StartCoroutine(RefreshBetsHistoryCoroutine());
-        }
-    }
-
-    private IEnumerator RefreshBetsHistoryCoroutine()
-    {
+        if (_isBetsHistoryRefreshing ) return;
+        
+        _cooldownTimer = _cooldownPeriod;
         SetLoadingState(true);
-        
-        yield return StartCoroutine(ClearExistingBetsHistory());
-
-        bool isTimedOut = false;
-        StartCoroutine(TimeoutCoroutine(() =>
-        {
-            isTimedOut = true;
-            _isBetsHistoryRefreshing = false;
-        }));
-        
-        yield return FetchAndProcessBets(isTimedOut);
-        SetLoadingState(false);
+        ClearExistingBetsHistory();
+        FetchAndProcessBets();
     }
+    
 
-    private IEnumerator FetchAndProcessBets(bool isTimedOut)
+    private void FetchAndProcessBets()
     {
         MatchesRepository.GetAllMatches()
             .Then(matches =>
@@ -79,14 +64,6 @@ public class BetsHistory : MonoBehaviour
                     .Catch(exception => HandleError(exception.Message));
             })
             .Catch(exception => HandleError(exception.Message));
-
-        if (isTimedOut)
-        {
-            HandleError("Timed out");
-            yield break;
-        }
-
-
     }
     private void ProcessBets(List<Bet> bets, List<Match> matches)
     {
@@ -95,7 +72,7 @@ public class BetsHistory : MonoBehaviour
         var betsLost = 0;
         double moneyGained = 0;
         double moneyLost = 0;
-
+        
         foreach (var bet in bets)
         {
             Match match = matches.FirstOrDefault(x => x.Id == bet.MatchId);
@@ -106,6 +83,7 @@ public class BetsHistory : MonoBehaviour
                 : DateTime.Now;
 
             var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
+            
             tempBetHistoryElement.SetData(match.MatchTitle, contestant.Name, contestant.Coefficient, bet.BetAmount,
                 bet.IsActive, contestant.Winner, dateTime, match.IsMatchCanceled);
 
@@ -122,28 +100,26 @@ public class BetsHistory : MonoBehaviour
                 betsLost++;
             }
         }
+        
+        betHistoryElements.Sort((a, b) => b.Date.CompareTo(a.Date));
+        for (var i = 0; i < betHistoryElements.Count; i++)
+        {
+            betHistoryElements[i].transform.SetSiblingIndex(i);
+        }
 
 
-        StartCoroutine(WaitForElementsAndResetScrollRoutine(betHistoryElements));
         betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
-        _isBetsHistoryRefreshing = false;
+        
+        SetLoadingState(false);
+        StartCoroutine(ScrollToTop());
     }
-    
-    private IEnumerator WaitForElementsAndResetScrollRoutine(List<BetHistoryElement> elements)
+
+    private IEnumerator ScrollToTop()
     {
-        yield return StartCoroutine(SortElementCoroutine(elements));
+        yield return new WaitForEndOfFrame();
         scrollRect.normalizedPosition = new Vector2(0, 1.0f);
     }
-
-    private IEnumerator SortElementCoroutine(List<BetHistoryElement> elements)
-    {
-        elements.Sort((a, b) => b.Date.CompareTo(a.Date));
-        foreach (var element in elements)
-        {
-            element.transform.SetSiblingIndex(betHistoryParent.childCount);
-        }
-        yield return null;
-    }
+    
     private void HandleError(string message)
     {
         _isBetsHistoryRefreshing = false;
@@ -167,19 +143,11 @@ public class BetsHistory : MonoBehaviour
         _isBetsHistoryRefreshing = isLoading;
     }
     
-    private IEnumerator ClearExistingBetsHistory()
+    private void ClearExistingBetsHistory()
     {
         foreach (Transform child in betHistoryParent)
         {
             Destroy(child.gameObject);
         }
-
-        yield return new WaitForSeconds(0.5f);
-    }
-
-    private IEnumerator TimeoutCoroutine(Action onTimeout, float timeoutSeconds = 30f)
-    {
-        yield return new WaitForSeconds(timeoutSeconds);
-        onTimeout?.Invoke();
     }
 }

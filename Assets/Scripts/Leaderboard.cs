@@ -13,13 +13,22 @@ public class Leaderboard : MonoBehaviour
     [SerializeField]
     private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
 
+    private readonly Color32[] _gradientColors = { ColorHelper.PaleYellow, ColorHelper.LightGreen };
+    private readonly float[] _gradientTimes = { 0.5f, 1.0f };
+    private Gradient _biggestGamblerGradient;
+
     private void OnEnable()
     {
-        NetworkCheck.OnInternetEstablished += () => StartCoroutine(LeaderBoardCoroutine());
+        NetworkCheck.OnInternetEstablished += () =>
+        {
+            ClearExistingLeaderboard();
+            RefreshLeaderboard();
+        };
     }
 
     private void Start()
     {
+        _biggestGamblerGradient = GradientHelper.CreateGradient(_gradientColors, _gradientTimes);
         StartCoroutine(LeaderBoardCoroutine());
     }
 
@@ -28,7 +37,6 @@ public class Leaderboard : MonoBehaviour
         while (true)
         {
             ClearExistingLeaderboard();
-            yield return new WaitForSeconds(1f);
             RefreshLeaderboard();
             yield return new WaitForSeconds(60f);
         }
@@ -36,13 +44,6 @@ public class Leaderboard : MonoBehaviour
 
     private void RefreshLeaderboard()
     {
-        Color32[] colors = { ColorHelper.PaleYellow, ColorHelper.LightGreen };
-
-        float[] times = { 0.5f, 1.0f };
-
-        var biggestGamblerGradient = GradientHelper.CreateGradient(colors, times);
-
-
         UserRepository.GetAllUsers().Then(users =>
         {
             foreach (var user in users)
@@ -58,7 +59,9 @@ public class Leaderboard : MonoBehaviour
             {
                 var leaderboardElement = Instantiate(leaderboardElementPrefab, leaderboardGrid);
                 leaderboardElement.SetData(user, topColors[index]);
-                if (index == 0) leaderboardElement.SetData(user, topColors[index], biggestGamblerGradient);
+
+                if (index == 0)
+                    leaderboardElement.SetData(user, topColors[index], _biggestGamblerGradient);
 
                 index++;
             }

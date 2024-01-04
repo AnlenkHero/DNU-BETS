@@ -36,12 +36,12 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void Awake()
     {
-        /*configuration = new GoogleSignInConfiguration
+        configuration = new GoogleSignInConfiguration
             { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
         CheckFirebaseDependencies();
-        SignInWithGoogle();*/
+        SignInWithGoogle();
 
-             var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000};
+       /*      var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000};
                  UserRepository.GetUserByUserId(user.userId).Then(userId =>
                  {
                      UserData.Balance = userId.balance;
@@ -57,7 +57,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
                          UserData.UserId = user.userId;
                          OnLoginFinished?.Invoke();
                      }).Catch(error => { Debug.LogError(error.Message); });
-                 });
+                 });*/
     }
 
     private void CheckFirebaseDependencies()
