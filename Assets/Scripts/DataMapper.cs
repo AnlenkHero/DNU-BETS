@@ -58,10 +58,13 @@ public class DataMapper : MonoBehaviour
                     .Then(bets =>
                     {
                         BetCache.Bets = bets;
-                        OnMapData?.Invoke();
                     })
                     .Catch(exception => Debug.LogError(exception.Message))
-                    .Finally(() => CreateMatchViews(matches));
+                    .Finally(() =>
+                    {
+                        OnMapData?.Invoke();
+                        CreateMatchViews(matches);
+                    });
             }).Catch(exception =>
             {
                 MatchesAvailable = false;

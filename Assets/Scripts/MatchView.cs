@@ -31,7 +31,9 @@ public class MatchView : MonoBehaviour
         Match = match;
         title.text = match.MatchTitle;
         buttonViews = new List<BetButtonView>();
-        bool hasBets = BetCache.Bets.Any(x => x.MatchId == match.Id);
+        
+        bool hasBets = BetCache.Bets?.Any(x => x.MatchId == match.Id)==true;
+        
         
         foreach (var contender in match.Contestants)
         {

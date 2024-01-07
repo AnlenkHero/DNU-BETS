@@ -17,7 +17,6 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private ScrollRect scrollRect;
     [SerializeField] private GameObject skeletonLoading;
     [SerializeField] private Button refreshButton;
-    [SerializeField] private GameObject waitingObject;
     [SerializeField] private TextMeshProUGUI betHistoryErrorTMP;
     private bool _isBetsHistoryRefreshing;
 
@@ -47,20 +46,21 @@ public class BetsHistory : MonoBehaviour
         MatchesRepository.GetAllMatches()
             .Then(matches =>
             {
-                if (BetCache.Bets != null)
-                    ProcessBets(BetCache.Bets, matches);
-                else
-                {
-                    SetLoadingState(false);
-                    HandleError("No bets found for user");
-                }
+                BetsRepository.GetAllBetsByUserId(UserData.UserId)
+                    .Then(bets =>  ProcessBets(bets, matches))
+                    .Catch(exception =>
+                    {
+                        SetLoadingState(false);
+                        HandleError($"No bets found for user {exception}");
+                    });
             })
             .Catch(exception =>
             {
                 SetLoadingState(false);
-                HandleError(exception.Message);
+                HandleError($"Failed to load matches {exception}");
             });
     }
+
 
     private void ProcessBets(List<Bet> bets, List<Match> matches)
     {
@@ -73,6 +73,9 @@ public class BetsHistory : MonoBehaviour
         foreach (var bet in bets)
         {
             Match match = matches.FirstOrDefault(x => x.Id == bet.MatchId);
+
+            if (match == null) continue;
+
             var contestant = match.Contestants.FirstOrDefault(c => c.Id == bet.ContestantId);
             var dateTime = DateTime.TryParseExact(match.FinishedDateUtc, "MM/dd/yyyy HH:mm:ss",
                 CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue)
@@ -119,6 +122,7 @@ public class BetsHistory : MonoBehaviour
 
     private void HandleError(string message)
     {
+        skeletonLoading.SetActive(false);
         _isBetsHistoryRefreshing = false;
         betHistoryErrorTMP.gameObject.SetActive(true);
         betHistoryErrorTMP.text = message;
@@ -129,7 +133,6 @@ public class BetsHistory : MonoBehaviour
     private void SetLoadingState(bool isLoading)
     {
         skeletonLoading.SetActive(isLoading);
-        waitingObject.SetActive(isLoading);
 
         if (!isLoading)
         {

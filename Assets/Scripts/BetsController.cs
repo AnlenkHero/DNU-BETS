@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Libs.Helpers;
 using Libs.Models;
 using Libs.Models.RequestModels;
@@ -74,8 +75,11 @@ public class BetsController : MonoBehaviour
                         BetAmount = newBetRequest.BetAmount, ContestantId = newBetRequest.ContestantId,
                         UserId = newBetRequest.UserId
                     };
-                    
-                    BetCache.Bets.Add(newBet);
+
+                    if (BetCache.Bets == null)
+                        BetCache.Bets = new List<Bet> { newBet };
+                    else
+                        BetCache.Bets.Add(newBet);
 
                     OnBetPosted?.Invoke();
                 }).Catch(exception =>
