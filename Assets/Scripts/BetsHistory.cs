@@ -94,7 +94,7 @@ public class BetsHistory : MonoBehaviour
                 betsWon++;
                 moneyGained += contestant.Coefficient * bet.BetAmount;
             }
-            else if (!bet.IsActive)
+            else if (!bet.IsActive && !match.IsMatchCanceled)
             {
                 moneyLost -= bet.BetAmount;
                 betsLost++;

@@ -105,50 +105,30 @@ namespace Libs.Repositories
         {
             return new Promise<Match>((resolve, reject) =>
             {
-                RestClient.Get($"{FirebaseDbUrl}matches/{matchId}.json").Then(response =>
+                RestClient.Get($"{FirebaseDbUrl}matches.json").Then(response =>
                 {
-                    var rawMatch = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Text);
+                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
 
-                    if (rawMatch == null || !rawMatch.Any())
+                    if (rawMatches == null || !rawMatches.Any())
+                    {
+                        reject(new Exception("No matches found"));
+                        return;
+                    }
+
+                    var matches = ExtractMatchesFromRawData(rawMatches);
+                    var match = matches.FirstOrDefault(m => m.Id == matchId);
+
+                    if (match == null)
                     {
                         reject(new Exception("Match not found"));
                         return;
                     }
 
-                    Match match = new Match
-                    {
-                        Id = matchId,
-                        ImageUrl = rawMatch["ImageUrl"] as string,
-                        MatchTitle = rawMatch["MatchTitle"] as string,
-                        IsBettingAvailable = (bool)rawMatch["IsBettingAvailable"],
-                        FinishedDateUtc = rawMatch.TryGetValue("FinishedDateUtc", out var finishedDate)
-                            ? finishedDate as string
-                            : null,
-                        Contestants = new List<Contestant>()
-                    };
-
-                    if (rawMatch.TryGetValue("Contestants", out var value))
-                    {
-                        string contestantsString = Convert.ToString(value);
-                        List<Dictionary<string, object>> rawContestants =
-                            JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(contestantsString);
-                        for (int i = 0; i < rawContestants.Count; i++)
-                        {
-                            var contestantDict = rawContestants[i];
-                            match.Contestants.Add(new Contestant
-                            {
-                                Id = i.ToString(),
-                                Name = contestantDict["Name"] as string,
-                                Coefficient = Convert.ToDouble(contestantDict["Coefficient"]),
-                                Winner = (bool)contestantDict["Winner"]
-                            });
-                        }
-                    }
-
                     resolve(match);
-                }).Catch(error => { reject(new Exception($"Error retrieving match by ID: {error.Message}")); });
+                }).Catch(error => { reject(new Exception($"Error retrieving matches: {error.Message}")); });
             });
         }
+
 
         public static Promise<List<Match>> GetNotFinishedMatches()
         {
@@ -223,6 +203,7 @@ namespace Libs.Repositories
                     ImageUrl = rawMatch["ImageUrl"] as string,
                     MatchTitle = rawMatch["MatchTitle"] as string,
                     IsBettingAvailable = (bool)rawMatch["IsBettingAvailable"],
+                    IsMatchCanceled = rawMatch.TryGetValue("IsMatchCanceled",out object matchCanceledObject) && (bool)matchCanceledObject, 
                     FinishedDateUtc = rawMatch.TryGetValue("FinishedDateUtc", out var finishedDate)
                         ? finishedDate as string
                         : null,

@@ -14,13 +14,13 @@ public class BetHistoryElement : MonoBehaviour
     public DateTime Date;
 
     public void SetData(string matchTitle, string contestantName, double coefficient, double betAmount, bool isActive,
-        bool isWin,DateTime dateTime, bool isCanceled)
+        bool isWin, DateTime dateTime, bool isCanceled)
     {
         matchTitleTMP.text = matchTitle;
         contestantNameTMP.text = contestantName;
         coefficientTMP.text = coefficient.ToString("F2");
         betAmountTMP.text = $"{betAmount.ToString()}<color={ColorHelper.LightGreenString}>$</color>";
-        CheckWin(isWin, isActive, isCanceled,coefficient, betAmount);
+        CheckWin(isWin, isActive, isCanceled, coefficient, betAmount);
         Date = dateTime;
     }
 
@@ -28,7 +28,7 @@ public class BetHistoryElement : MonoBehaviour
     {
         if (isActive)
         {
-            SetStatus("Ongoing",  ColorHelper.PaleYellow, betAmount);
+            SetStatus("Ongoing", ColorHelper.PaleYellow, betAmount);
             return;
         }
 
@@ -56,5 +56,4 @@ public class BetHistoryElement : MonoBehaviour
         moneyLostOrGainedTMP.text = $"{amount.ToString()}<color={ColorHelper.LightGreenString}>$</color>";
         moneyLostOrGainedTMP.color = color;
     }
-
 }

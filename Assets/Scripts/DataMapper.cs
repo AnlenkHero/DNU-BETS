@@ -26,7 +26,6 @@ public class DataMapper : MonoBehaviour
     private void OnEnable()
     {
         FirebaseGoogleLogin.OnLoginFinished += MapData;
-        FirebaseGoogleLogin.OnLoginFinished += () => StartCoroutine(InitializeUserData());
         NetworkCheck.OnInternetEstablished += MapData;
     }
 
@@ -43,6 +42,7 @@ public class DataMapper : MonoBehaviour
 
     public void MapData()
     {
+        InitializeUserData();
         if (!(_cooldownTimer <= 0)) return;
         
         _cooldownTimer = _cooldownPeriod;
@@ -99,15 +99,11 @@ public class DataMapper : MonoBehaviour
         }
     }
 
-    private IEnumerator InitializeUserData()
+    private void InitializeUserData()
     {
-        while (true)
-        {
-            nameText.text = UserData.Name;
+        nameText.text = UserData.Name;
             UserRepository.GetUserBalanceById(UserData.UserId)
                 .Then(balance => { moneyView.Balance = balance; })
                 .Catch(Debug.LogError);
-            yield return new WaitForSeconds(10f);
-        }
     }
 }

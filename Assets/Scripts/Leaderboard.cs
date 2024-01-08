@@ -19,7 +19,7 @@ public class Leaderboard : MonoBehaviour
 
     private void OnEnable()
     {
-        NetworkCheck.OnInternetEstablished += () =>
+        DataMapper.OnMapData += () =>
         {
             ClearExistingLeaderboard();
             RefreshLeaderboard();
@@ -29,21 +29,11 @@ public class Leaderboard : MonoBehaviour
     private void Start()
     {
         _biggestGamblerGradient = GradientHelper.CreateGradient(_gradientColors, _gradientTimes);
-        StartCoroutine(LeaderBoardCoroutine());
-    }
-
-    private IEnumerator LeaderBoardCoroutine()
-    {
-        while (true)
-        {
-            ClearExistingLeaderboard();
-            RefreshLeaderboard();
-            yield return new WaitForSeconds(60f);
-        }
     }
 
     private void RefreshLeaderboard()
     {
+        ClearExistingLeaderboard();
         leaderboardSkeletonLoading.SetActive(true);
         UserRepository.GetAllUsers().Then(users =>
         {
