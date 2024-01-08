@@ -7,17 +7,13 @@ using UnityEngine.UI;
 public class ResetBehaviour : MonoBehaviour
 {
     [SerializeField] private MoneyView moneyView;
-    [SerializeField] private GameObject resetPanel;
     [SerializeField] private Button resetButton;
-    [SerializeField] private Button confirmButton;
-    [SerializeField] private Button declineButton;
+
     private const int BalanceToReset = 300;
 
     private void Awake()
     {
         resetButton.onClick.AddListener(CheckConditions);
-        confirmButton.onClick.AddListener(ResetMoney);
-        declineButton.onClick.AddListener(Decline);
     }
 
     private void CheckConditions()
@@ -26,7 +22,7 @@ public class ResetBehaviour : MonoBehaviour
         {
             var hasActiveBets = bets.Any(bet => bet.IsActive);
             if (moneyView.Balance < BalanceToReset && !hasActiveBets)
-                resetPanel.SetActive(true);
+                ShowResetPanel();
             else
             {
                 InfoPanel.ShowPanel(ColorHelper.HotPink,
@@ -35,7 +31,7 @@ public class ResetBehaviour : MonoBehaviour
         }).Catch(_ =>
         {
             if (moneyView.Balance < BalanceToReset)
-                resetPanel.SetActive(true);
+                ShowResetPanel();
             else
             {
                 InfoPanel.ShowPanel(ColorHelper.HotPink,
@@ -44,9 +40,14 @@ public class ResetBehaviour : MonoBehaviour
         });
     }
 
-    private void Decline()
+    private void ShowResetPanel()
     {
-        resetPanel.SetActive(false);
+        InfoPanel.ShowPanel(ColorHelper.PaleYellow, "CONFIRM RESET BALANCE TO 300$?",
+            () =>
+            {
+                InfoPanel.Instance.AddButton("Reset Money", ResetMoney, ColorHelper.LightGreenString);
+                InfoPanel.Instance.AddButton("Decline", () => InfoPanel.Instance.HidePanel(), ColorHelper.HotPinkString);
+            });
     }
 
     private void ResetMoney()
@@ -71,6 +72,6 @@ public class ResetBehaviour : MonoBehaviour
             InfoPanel.ShowPanel(ColorHelper.HotPink,
                 $"Failed to get user by id. {exception.Message}");
         });
-        resetPanel.SetActive(false);
+        InfoPanel.Instance.HidePanel();
     }
 }

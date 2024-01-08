@@ -14,9 +14,18 @@ public class PurchaseBuffBehaviour : MonoBehaviour
 
     private void Awake()
     {
-        purchaseBuffButton.onClick.AddListener(PurchaseBuff);
+        purchaseBuffButton.onClick.AddListener(ShowPurchaseBuffPanel);
     }
 
+    private void ShowPurchaseBuffPanel()
+    {
+        InfoPanel.ShowPanel(ColorHelper.PaleYellow, "CONFIRM BUFF PURCHASE?",
+                () =>
+                {
+                    InfoPanel.Instance.AddButton("Purchase Buff", PurchaseBuff, ColorHelper.LightGreenString);
+                    InfoPanel.Instance.AddButton("Decline", () => InfoPanel.Instance.HidePanel(), ColorHelper.HotPinkString);
+                });
+    }
     private void PurchaseBuff()
     {
         AppSettingsRepository.GetAppSettings().Then(settings =>
