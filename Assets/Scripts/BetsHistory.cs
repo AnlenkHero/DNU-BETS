@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Libs.Helpers;
 using Libs.Models;
 using Libs.Repositories;
 using TMPro;
@@ -35,7 +36,7 @@ public class BetsHistory : MonoBehaviour
     private void RefreshBetsHistory()
     {
         if (_isBetsHistoryRefreshing) return;
-        ClearExistingBetsHistory();
+        betHistoryParent.ClearExistingElementsInParent();
         FetchAndProcessBets();
     }
 
@@ -142,12 +143,5 @@ public class BetsHistory : MonoBehaviour
 
         _isBetsHistoryRefreshing = isLoading;
     }
-
-    private void ClearExistingBetsHistory()
-    {
-        foreach (Transform child in betHistoryParent)
-        {
-            Destroy(child.gameObject);
-        }
-    }
+    
 }

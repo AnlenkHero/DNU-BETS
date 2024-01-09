@@ -21,7 +21,7 @@ public class Leaderboard : MonoBehaviour
     {
         DataMapper.OnMapData += () =>
         {
-            ClearExistingLeaderboard();
+            leaderboardGrid.ClearExistingElementsInParent();
             RefreshLeaderboard();
         };
     }
@@ -33,7 +33,7 @@ public class Leaderboard : MonoBehaviour
 
     private void RefreshLeaderboard()
     {
-        ClearExistingLeaderboard();
+        leaderboardGrid.ClearExistingElementsInParent();
         leaderboardSkeletonLoading.SetActive(true);
         UserRepository.GetAllUsers().Then(users =>
         {
@@ -58,11 +58,5 @@ public class Leaderboard : MonoBehaviour
             }
             leaderboardSkeletonLoading.SetActive(false);
         });
-    }
-
-    private void ClearExistingLeaderboard()
-    {
-        foreach (Transform child in leaderboardGrid) 
-            Destroy(child.gameObject);
     }
 }

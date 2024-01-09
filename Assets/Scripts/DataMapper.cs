@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Libs.Helpers;
 using Libs.Repositories;
 using TMPro;
 using UnityEngine;
@@ -49,7 +50,7 @@ public class DataMapper : MonoBehaviour
 
         noMatchesPanel.SetActive(false);
         dataMapperSkeletonLoading.SetActive(true);
-        ClearExistingMatches();
+        matchPanelParent.ClearExistingElementsInParent();
 
         MatchesRepository.GetBettingAvailableMatches()
             .Then(matches =>
@@ -89,14 +90,6 @@ public class DataMapper : MonoBehaviour
             MatchesAvailable = true;
         }
         dataMapperSkeletonLoading.SetActive(false);
-    }
-
-    private void ClearExistingMatches()
-    {
-        foreach (Transform child in matchPanelParent)
-        {
-            Destroy(child.gameObject);
-        }
     }
 
     private void InitializeUserData()
