@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using Libs.Helpers;
 using Libs.Repositories;
@@ -15,13 +14,11 @@ public class DataMapper : MonoBehaviour
     [SerializeField] private MoneyView moneyView;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private GameObject noMatchesPanel;
-    [SerializeField] private SwipeMenu swipeMenu;
     [SerializeField] private Button refreshButton;
     [SerializeField] private GameObject dataMapperSkeletonLoading;
-    public static bool MatchesAvailable;
     private float _cooldownTimer;
     private readonly float _cooldownPeriod = 3f;
-
+    private bool _isDataMappingRefreshing;
     public static event Action OnMapData;
 
     private void OnEnable()
@@ -43,35 +40,42 @@ public class DataMapper : MonoBehaviour
 
     public void MapData()
     {
+        if (!(_cooldownTimer <= 0) || _isDataMappingRefreshing) return;
+
         InitializeUserData();
-        if (!(_cooldownTimer <= 0)) return;
         
         _cooldownTimer = _cooldownPeriod;
+        _isDataMappingRefreshing = true;
 
-        noMatchesPanel.SetActive(false);
-        dataMapperSkeletonLoading.SetActive(true);
-        matchPanelParent.ClearExistingElementsInParent();
+        PrepareToRefresh();
 
         MatchesRepository.GetBettingAvailableMatches()
             .Then(matches =>
             {
                 BetsRepository.GetAllBetsByUserId(UserData.UserId)
-                    .Then(bets =>
-                    {
-                        BetCache.Bets = bets;
-                    })
+                    .Then(bets => BetCache.Bets = bets)
                     .Catch(exception => Debug.LogError(exception.Message))
                     .Finally(() =>
                     {
                         OnMapData?.Invoke();
                         CreateMatchViews(matches);
+                        _isDataMappingRefreshing = false;
                     });
-            }).Catch(exception =>
-            {
-                MatchesAvailable = false;
-                Debug.LogError(exception.Message);
-                dataMapperSkeletonLoading.SetActive(false);
-            });
+            }).Catch(HandleDataMappingError);
+    }
+
+    private void PrepareToRefresh()
+    {
+        noMatchesPanel.SetActive(false);
+        dataMapperSkeletonLoading.SetActive(true);
+        matchPanelParent.ClearExistingElementsInParent();
+    }
+
+    private void HandleDataMappingError(Exception exception)
+    {
+        Debug.LogError(exception.Message);
+        dataMapperSkeletonLoading.SetActive(false);
+        _isDataMappingRefreshing = false;
     }
 
     private void CreateMatchViews(List<Match> matches)
@@ -86,17 +90,16 @@ public class DataMapper : MonoBehaviour
 
                 matchView.SetData(match);
             }
-
-            MatchesAvailable = true;
         }
+
         dataMapperSkeletonLoading.SetActive(false);
     }
 
     private void InitializeUserData()
     {
         nameText.text = UserData.Name;
-            UserRepository.GetUserBalanceById(UserData.UserId)
-                .Then(balance => { moneyView.Balance = balance; })
-                .Catch(Debug.LogError);
+        UserRepository.GetUserBalanceById(UserData.UserId)
+            .Then(balance => { moneyView.Balance = balance; })
+            .Catch(Debug.LogError);
     }
 }

@@ -1,7 +1,10 @@
-using System.Collections;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Libs.Helpers;
+using Libs.Models;
 using Libs.Repositories;
+using TMPro;
 using UnityEngine;
 
 public class Leaderboard : MonoBehaviour
@@ -10,20 +13,17 @@ public class Leaderboard : MonoBehaviour
     [SerializeField] private LeaderboardElement leaderboardElementPrefab;
     [SerializeField] private GameObject leaderboardSkeletonLoading;
     [SerializeField] private Material biggestGamblerMaterial;
-    [SerializeField]
-    private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
+    [SerializeField] private TextMeshProUGUI leaderboardExceptionText;
+    [SerializeField] private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
 
     private readonly Color32[] _gradientColors = { ColorHelper.PaleYellow, ColorHelper.LightGreen };
     private readonly float[] _gradientTimes = { 0.5f, 1.0f };
     private Gradient _biggestGamblerGradient;
+    private bool _isLeaderboardRefreshing;
 
     private void OnEnable()
     {
-        DataMapper.OnMapData += () =>
-        {
-            leaderboardGrid.ClearExistingElementsInParent();
-            RefreshLeaderboard();
-        };
+        DataMapper.OnMapData += RefreshLeaderboard;
     }
 
     private void Start()
@@ -33,30 +33,63 @@ public class Leaderboard : MonoBehaviour
 
     private void RefreshLeaderboard()
     {
+        if (_isLeaderboardRefreshing) return;
+
+        _isLeaderboardRefreshing = true;
+        ClearLeaderboard();
+        FetchAndDisplayLeaderboard();
+    }
+
+    private void ClearLeaderboard()
+    {
         leaderboardGrid.ClearExistingElementsInParent();
         leaderboardSkeletonLoading.SetActive(true);
-        UserRepository.GetAllUsers().Then(users =>
+        leaderboardExceptionText.gameObject.SetActive(false);
+    }
+
+    private void FetchAndDisplayLeaderboard()
+    {
+        UserRepository.GetAllUsers()
+            .Then(ProcessUsers)
+            .Catch(HandleLeaderboardError);
+    }
+
+    private void ProcessUsers(List<User> users)
+    {
+        ApplyBuffPurchasesToUsers(users);
+        var topUsers = users.OrderByDescending(u => u.balance).Take(3).ToList();
+        DisplayTopUsers(topUsers);
+        _isLeaderboardRefreshing = false;
+    }
+
+    private void ApplyBuffPurchasesToUsers(List<User> users)
+    {
+        foreach (var user in users)
         {
-            foreach (var user in users)
+            user.balance += user.buffPurchase.Sum(buff => buff.price);
+        }
+    }
+
+    private void DisplayTopUsers(List<User> topUsers)
+    {
+        for (var i = 0; i < topUsers.Count; i++)
+        {
+            var leaderboardElement = Instantiate(leaderboardElementPrefab, leaderboardGrid);
+            leaderboardElement.SetData(topUsers[i], topColors[i]);
+
+            if (i == 0)
             {
-                foreach (var buff in user.buffPurchase)
-                    user.balance += buff.price;
+                leaderboardElement.SetData(topUsers[i], topColors[i], _biggestGamblerGradient, biggestGamblerMaterial);
             }
+        }
+        leaderboardSkeletonLoading.SetActive(false);
+    }
 
-            var topUsers = users.OrderByDescending(x => x.balance).Take(3).ToList();
-
-            var index = 0;
-            foreach (var user in topUsers)
-            {
-                var leaderboardElement = Instantiate(leaderboardElementPrefab, leaderboardGrid);
-                leaderboardElement.SetData(user, topColors[index]);
-
-                if (index == 0)
-                    leaderboardElement.SetData(user, topColors[index], _biggestGamblerGradient, biggestGamblerMaterial);
-
-                index++;
-            }
-            leaderboardSkeletonLoading.SetActive(false);
-        });
+    private void HandleLeaderboardError(Exception exception)
+    {
+        _isLeaderboardRefreshing = false;
+        leaderboardExceptionText.gameObject.SetActive(true);
+        leaderboardExceptionText.text = $"Failed to load leaderboard: {exception.Message}";
+        Debug.LogError($"Failed to load leaderboard: {exception}");
     }
 }

@@ -22,7 +22,7 @@ public class SwipeMenu : MonoBehaviour
 
     private void Update()
     {
-        if (NetworkCheck.IsNetworkActive && DataMapper.MatchesAvailable)
+        if (NetworkCheck.IsNetworkActive /*&& DataMapper.MatchesAvailable*/)
         {
             InitializePositions();
             if (Input.GetMouseButton(0))

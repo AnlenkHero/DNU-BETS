@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Firebase;
 using Firebase.Auth;
 using Google;
 using Libs.Helpers;
+using Libs.Models;
 using Libs.Models.RequestModels;
 using Libs.Repositories;
 using TMPro;
@@ -35,29 +37,29 @@ public class FirebaseGoogleLogin : MonoBehaviour
     }
 
     private void Awake()
-    { 
+    {
         configuration = new GoogleSignInConfiguration
             { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
         CheckFirebaseDependencies();
         SignInWithGoogle();
 
-           /* var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000};
-                 UserRepository.GetUserByUserId(user.userId).Then(userId =>
-                 {
-                     UserData.Balance = userId.balance;
-                     UserData.Name = userId.userName;
-                     UserData.UserId = user.userId;
-                     OnLoginFinished?.Invoke();
-                 }).Catch(errorUser =>
-                 {
-                     UserRepository.SaveUser(user).Then(userId =>
-                     {
-                         UserData.Name = user.userName;
-                         UserData.Balance = user.balance;
-                         UserData.UserId = user.userId;
-                         OnLoginFinished?.Invoke();
-                     }).Catch(error => { Debug.LogError(error.Message); });
-                 });*/
+        /* var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000};
+              UserRepository.GetUserByUserId(user.userId).Then(userId =>
+              {
+                  UserData.Balance = userId.balance;
+                  UserData.Name = userId.userName;
+                  UserData.UserId = user.userId;
+                  OnLoginFinished?.Invoke();
+              }).Catch(errorUser =>
+              {
+                  UserRepository.SaveUser(user).Then(userId =>
+                  {
+                      UserData.Name = user.userName;
+                      UserData.Balance = user.balance;
+                      UserData.UserId = user.userId;
+                      OnLoginFinished?.Invoke();
+                  }).Catch(error => { Debug.LogError(error.Message); });
+              });*/
     }
 
     private void CheckFirebaseDependencies()
@@ -88,7 +90,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         _isSignInInProgress = true;
         OnSignIn();
     }
-    
+
 
     private void OnSignIn()
     {
@@ -99,75 +101,108 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
         GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnAuthenticationFinished);
     }
-    
+
 
     internal void OnAuthenticationFinished(Task<GoogleSignInUser> task)
     {
+        _isSignInInProgress = false;
+
         if (task.IsFaulted)
         {
-            _isSignInInProgress = false;
-            using (IEnumerator<Exception> enumerator = task.Exception.InnerExceptions.GetEnumerator())
-            {
-                if (enumerator.MoveNext())
-                {
-                    GoogleSignIn.SignInException error = (GoogleSignIn.SignInException)enumerator.Current;
-                    AddToInformation("Got Error: " + error.Status + " " + error.Message);
-                }
-                else
-                {
-                    AddToInformation("Got Unexpected Exception?!?" + task.Exception);
-                }
-            }
+            HandleSignInFault(task);
         }
         else if (task.IsCanceled)
         {
-            _isSignInInProgress = false;
             AddToInformation("Canceled");
         }
         else
         {
-            var result = task.Result;
-            var user = new UserRequest()
-            {
-                userId = result.UserId, userName = result.DisplayName, balance = 1000,
-                imageUrl = result.ImageUrl.ToString()
-            };
-            UserRepository.GetUserByUserId(user.userId).Then(userId =>
-            {
-                UserData.Balance = userId.balance;
-                UserData.Name = userId.userName;
-                UserData.UserId = user.userId;
-                userId.imageUrl = user.imageUrl;
-                userId.userName = user.userName;
-                UserRepository.UpdateUserInfo(userId);
-                OnLoginFinished?.Invoke();
-            }).Catch(errorUser =>
-            {
-                UserRepository.SaveUser(user).Then(userId =>
-                {
-                    UserData.Name = user.userName;
-                    UserData.Balance = user.balance;
-                    UserData.UserId = user.userId;
-                    OnLoginFinished?.Invoke();
-                }).Catch(error => { Debug.LogError(error.Message); });
-            });
-
-            TextureLoader.LoadTexture(this, user.imageUrl, texture2D =>
-            {
-                if (texture2D != null)
-                {
-                    profileImage.texture = texture2D;
-                }
-                else
-                {
-                    Debug.Log("Texture failed to load.");
-                }
-            });
-            loginPanel.SetActive(false);
-            OnLoginFinished?.Invoke();
-            SignInWithGoogleOnFirebase(result.IdToken);
+            HandleSuccessfulSignIn(task.Result);
         }
     }
+
+    private void HandleSignInFault(Task<GoogleSignInUser> task)
+    {
+        if (task.Exception?.InnerExceptions.FirstOrDefault() is GoogleSignIn.SignInException error)
+        {
+            AddToInformation("Got Error: " + error.Status + " " + error.Message);
+        }
+        else
+        {
+            AddToInformation("Got Unexpected Exception?!?" + task.Exception);
+        }
+    }
+
+    private void HandleSuccessfulSignIn(GoogleSignInUser result)
+    {
+        var user = CreateUserRequest(result);
+        UpdateOrSaveUserData(user);
+        LoadUserProfileImage(user.imageUrl);
+        SignInWithGoogleOnFirebase(result.IdToken);
+    }
+
+    private UserRequest CreateUserRequest(GoogleSignInUser result)
+    {
+        return new UserRequest
+        {
+            userId = result.UserId,
+            userName = result.DisplayName,
+            balance = 1000,
+            imageUrl = result.ImageUrl.ToString()
+        };
+    }
+
+    private void UpdateOrSaveUserData(UserRequest user)
+    {
+        UserRepository.GetUserByUserId(user.userId)
+            .Then(userId =>
+            {
+                UpdateUserData(user, userId);
+                OnLoginFinished?.Invoke();
+                loginPanel.SetActive(false);
+            })
+            .Catch(errorUser => { SaveNewUser(user); });
+    }
+
+    private void UpdateUserData(UserRequest user, User userId)
+    {
+        UserData.Balance = userId.balance;
+        UserData.Name = userId.userName;
+        UserData.UserId = user.userId;
+        userId.imageUrl = user.imageUrl;
+        userId.userName = user.userName;
+        UserRepository.UpdateUserInfo(userId);
+    }
+
+    private void SaveNewUser(UserRequest user)
+    {
+        UserRepository.SaveUser(user)
+            .Then(userId =>
+            {
+                UserData.Name = user.userName;
+                UserData.Balance = user.balance;
+                UserData.UserId = user.userId;
+                OnLoginFinished?.Invoke();
+                loginPanel.SetActive(false);
+            })
+            .Catch(error => Debug.LogError(error.Message));
+    }
+
+    private void LoadUserProfileImage(string imageUrl)
+    {
+        TextureLoader.LoadTexture(this, imageUrl, texture2D =>
+        {
+            if (texture2D != null)
+            {
+                profileImage.texture = texture2D;
+            }
+            else
+            {
+                Debug.Log("Texture failed to load.");
+            }
+        });
+    }
+
 
     private void SignInWithGoogleOnFirebase(string idToken)
     {
@@ -176,7 +211,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         auth.SignInWithCredentialAsync(credential).ContinueWith(task =>
         {
             AggregateException ex = task.Exception;
-            
+
             if (ex != null)
             {
                 if (ex.InnerExceptions[0] is FirebaseException inner && (inner.ErrorCode != 0))
