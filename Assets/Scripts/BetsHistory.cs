@@ -17,7 +17,6 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private BetsHistoryTotalInfo betsHistoryTotalInfo;
     [SerializeField] private ScrollRect scrollRect;
     [SerializeField] private GameObject skeletonLoading;
-    [SerializeField] private Button refreshButton;
     [SerializeField] private TextMeshProUGUI betHistoryErrorTMP;
     private bool _isBetsHistoryRefreshing;
 
@@ -27,12 +26,7 @@ public class BetsHistory : MonoBehaviour
         DataMapper.OnMapData += RefreshBetsHistory;
         BetsController.OnBetPosted += RefreshBetsHistory;
     }
-
-    private void Start()
-    {
-        refreshButton.onClick.AddListener(RefreshBetsHistory);
-    }
-
+    
     private void RefreshBetsHistory()
     {
         if (_isBetsHistoryRefreshing) return;
@@ -47,13 +41,13 @@ public class BetsHistory : MonoBehaviour
         MatchesRepository.GetAllMatches()
             .Then(matches =>
             {
-                BetsRepository.GetAllBetsByUserId(UserData.UserId)
-                    .Then(bets =>  ProcessBets(bets, matches))
-                    .Catch(exception =>
-                    {
-                        SetLoadingState(false);
-                        HandleError($"No bets found for user {exception}");
-                    });
+                if (BetCache.Bets != null)
+                    ProcessBets(BetCache.Bets, matches);
+                else
+                {
+                    SetLoadingState(false);
+                    HandleError("No bets found for user");
+                }
             })
             .Catch(exception =>
             {
@@ -127,7 +121,6 @@ public class BetsHistory : MonoBehaviour
         _isBetsHistoryRefreshing = false;
         betHistoryErrorTMP.gameObject.SetActive(true);
         betHistoryErrorTMP.text = message;
-        refreshButton.gameObject.SetActive(true);
         Debug.LogError(message);
     }
 
@@ -138,7 +131,6 @@ public class BetsHistory : MonoBehaviour
         if (!isLoading)
         {
             betHistoryErrorTMP.gameObject.SetActive(false);
-            refreshButton.gameObject.SetActive(false);
         }
 
         _isBetsHistoryRefreshing = isLoading;
