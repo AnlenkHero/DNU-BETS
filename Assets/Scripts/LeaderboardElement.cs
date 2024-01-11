@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using JetBrains.Annotations;
 using Libs.Helpers;
 using Libs.Models;
@@ -55,92 +53,59 @@ public class LeaderboardElement : MonoBehaviour
         if (matches.Count > 0)
         {
             BetsRepository.GetAllBetsByUserId(user.userId)
-                .Then(bets => ProcessBets(user, bets, matches))
+                .Then(bets => BetsProcessor.ProcessBets(bets, matches, stats =>
+                {
+                    var betStats = CalculateStats(bets.Count, stats);
+
+                    string info =
+                        $"{user.userName}\n\nTotal Bets: {betStats.totalBets}\nWin/Lose: {betStats.winToLose}\nWin Percentage: \n{betStats.winPercentage}\nGained Money: \n{betStats.gainedMoney}\nLost Money: \n{betStats.lostMoney}";
+
+                    InfoPanel.ShowPanel(Color.white, info);
+                }))
                 .Catch(exception => Debug.LogError(exception.Message));
         }
     }
 
-    private void ProcessBets(User user, List<Bet> bets, List<Match> matches)
-    {
-        var betsWon = 0;
-        var betsLost = 0;
-        var matchesCanceled = 0;
-        double moneyGained = 0;
-        double moneyLost = 0;
-
-        foreach (var bet in bets)
-        {
-            Match match = matches.FirstOrDefault(x => x.Id == bet.MatchId);
-
-            if (match == null) continue;
-
-            var contestant = match.Contestants.FirstOrDefault(c => c.Id == bet.ContestantId);
-
-            if (match.IsMatchCanceled)
-            {
-                matchesCanceled++;
-            }
-
-            if (contestant.Winner)
-            {
-                betsWon++;
-                moneyGained += contestant.Coefficient * bet.BetAmount;
-            }
-            else if (!bet.IsActive && !match.IsMatchCanceled)
-            {
-                moneyLost -= bet.BetAmount;
-                betsLost++;
-            }
-        }
-
-        var stats = CalculateStats(bets.Count, betsWon, betsLost, moneyGained, moneyLost, matchesCanceled);
-
-        string info =
-            $"{user.userName}\n\nTotal Bets: {stats.totalBets}\nWin/Lose: {stats.winToLose}\nWin Percentage: {stats.winPercentage}\nGained Money: {stats.gainedMoney}\nLost Money: \n{stats.lostMoney}";
-
-        InfoPanel.ShowPanel(Color.white, info);
-    }
 
     private (string totalBets, string winToLose, string winPercentage, string gainedMoney, string lostMoney)
-        CalculateStats(int betsCount, int betsWon, int betsLost,
-            double moneyGained, double moneyLost, int matchesCanceled)
+        CalculateStats(int betsCount, BetsProcessor.BetStats stats)
     {
         string totalBets = $"<color={ColorHelper.OrangeString}>{betsCount.ToString()}</color>";
         string winToLose;
         string winPercentage;
         if (betsCount > 0)
         {
-            double percentage = (double)betsWon / (betsCount - matchesCanceled) * 100;
+            double percentage = (double)stats.BetsWon / (betsCount - stats.MatchesCanceled) * 100;
 
             switch (percentage)
             {
                 case < 50:
                     winPercentage = $"<color={ColorHelper.HotPinkString}>{percentage.ToString("F2")}</color>% ";
                     winToLose =
-                        $"<color={ColorHelper.HotPinkString}>{betsWon.ToString()} - {betsLost.ToString()}</color> ";
+                        $"<color={ColorHelper.HotPinkString}>{stats.BetsWon.ToString()} - {stats.BetsLost.ToString()}</color> ";
                     break;
                 case > 50:
                     winPercentage = $"<color={ColorHelper.LightGreenString}>{percentage.ToString("F2")}</color>% ";
                     winToLose =
-                        $"<color={ColorHelper.LightGreenString}>{betsWon.ToString()} - {betsLost.ToString()}</color> ";
+                        $"<color={ColorHelper.LightGreenString}>{stats.BetsWon.ToString()} - {stats.BetsLost.ToString()}</color> ";
                     break;
                 default:
                     winPercentage = $"<color={ColorHelper.OrangeString}>{percentage.ToString("F2")}</color>% ";
                     winToLose =
-                        $"<color={ColorHelper.OrangeString}>{betsWon.ToString()} - {betsLost.ToString()}</color> ";
+                        $"<color={ColorHelper.OrangeString}>{stats.BetsWon.ToString()} - {stats.BetsLost.ToString()}</color> ";
                     break;
             }
         }
         else
         {
             winPercentage = "<color=#ffffff>N/A</color>% ";
-            winToLose = $"<color=#ffffff>{betsWon.ToString()} - {betsLost.ToString()}</color>% ";
+            winToLose = $"<color=#ffffff>{stats.BetsWon.ToString()} - {stats.BetsLost.ToString()}</color>% ";
         }
 
         string gainedMoney =
-            $"<color={ColorHelper.LightGreenString}>{moneyGained.ToString()}</color><color={ColorHelper.LightGreenString}>$</color>";
+            $"<color={ColorHelper.LightGreenString}>{stats.MoneyGained.ToString()}</color><color={ColorHelper.LightGreenString}>$</color>";
         string lostMoney =
-            $"<color={ColorHelper.HotPinkString}>{moneyLost.ToString()}</color><color={ColorHelper.LightGreenString}>$</color>";
+            $"<color={ColorHelper.HotPinkString}>{stats.MoneyLost.ToString()}</color><color={ColorHelper.LightGreenString}>$</color>";
 
         return (totalBets, winToLose, winPercentage, gainedMoney, lostMoney);
     }

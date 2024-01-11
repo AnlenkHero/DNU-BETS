@@ -8877,7 +8877,6 @@ MonoBehaviour:
   betsHistoryTotalInfo: {fileID: 1221123424}
   scrollRect: {fileID: 8662977454327231192}
   skeletonLoading: {fileID: 2067620271}
-  refreshButton: {fileID: 1768730966}
   betHistoryErrorTMP: {fileID: 1362216296}
 --- !u!4 &2069917444
 Transform:
@@ -9060,7 +9059,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   matchPanelParent: {fileID: 824950489}
-  matchPanelPrefab: {fileID: 1899687552334427350, guid: 15d0ed31767acb044917577082303577,
+  matchPanel: {fileID: 1899687552334427350, guid: 15d0ed31767acb044917577082303577,
     type: 3}
   moneyView: {fileID: 1986419711}
   nameText: {fileID: 1866714341}

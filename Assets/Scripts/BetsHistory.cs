@@ -26,7 +26,7 @@ public class BetsHistory : MonoBehaviour
         DataMapper.OnMapData += RefreshBetsHistory;
         BetsController.OnBetPosted += RefreshBetsHistory;
     }
-    
+
     private void RefreshBetsHistory()
     {
         if (_isBetsHistoryRefreshing) return;
@@ -60,58 +60,44 @@ public class BetsHistory : MonoBehaviour
     private void ProcessBets(List<Bet> bets, List<Match> matches)
     {
         var betHistoryElements = new List<BetHistoryElement>();
-        var betsWon = 0;
-        var betsLost = 0;
-        var matchesCanceled = 0;
-        double moneyGained = 0;
-        double moneyLost = 0;
-
-        foreach (var bet in bets)
+        BetsProcessor.ProcessBets(bets, matches, stats =>
         {
-            Match match = matches.FirstOrDefault(x => x.Id == bet.MatchId);
-
-            if (match == null) continue;
-
-            var contestant = match.Contestants.FirstOrDefault(c => c.Id == bet.ContestantId);
-            var dateTime = DateTime.TryParseExact(match.FinishedDateUtc, "MM/dd/yyyy HH:mm:ss",
-                CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue)
-                ? dateValue
-                : DateTime.Now;
-
-            var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
-
-            tempBetHistoryElement.SetData(match.MatchTitle, contestant.Name, contestant.Coefficient, bet.BetAmount,
-                bet.IsActive, contestant.Winner, dateTime, match.IsMatchCanceled);
-
-            betHistoryElements.Add(tempBetHistoryElement);
-
-            if (match.IsMatchCanceled)
+            foreach (var processedBet in stats.ProcessedBets)
             {
-                matchesCanceled++;
-            }
-            if (contestant.Winner)
-            {
-                betsWon++;
-                moneyGained += contestant.Coefficient * bet.BetAmount;
-            }
-            else if (!bet.IsActive && !match.IsMatchCanceled)
-            {
-                moneyLost -= bet.BetAmount;
-                betsLost++;
-            }
-        }
+                var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
 
+                tempBetHistoryElement.SetData(
+                    processedBet.Match.MatchTitle,
+                    processedBet.Match.Contestants.Find(c => c.Id == processedBet.Bet.ContestantId)?.Name,
+                    processedBet.Match.Contestants.Find(c => c.Id == processedBet.Bet.ContestantId)?.Coefficient ?? 0,
+                    processedBet.Bet.BetAmount,
+                    processedBet.Bet.IsActive,
+                    processedBet.IsWinner,
+                    processedBet.DateTime,
+                    processedBet.Match.IsMatchCanceled
+                );
+
+                betHistoryElements.Add(tempBetHistoryElement);
+            }
+
+
+            SortBetsHistory(betHistoryElements);
+
+            betsHistoryTotalInfo.SetData(bets.Count, stats.BetsWon, stats.BetsLost, stats.MoneyGained, stats.MoneyLost,
+                stats.MatchesCanceled);
+
+            SetLoadingState(false);
+            StartCoroutine(ScrollToTop());
+        });
+    }
+
+    private static void SortBetsHistory(List<BetHistoryElement> betHistoryElements)
+    {
         betHistoryElements.Sort((a, b) => b.Date.CompareTo(a.Date));
         for (var i = 0; i < betHistoryElements.Count; i++)
         {
             betHistoryElements[i].transform.SetSiblingIndex(i);
         }
-
-
-        betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost, matchesCanceled);
-
-        SetLoadingState(false);
-        StartCoroutine(ScrollToTop());
     }
 
     private IEnumerator ScrollToTop()
@@ -140,5 +126,4 @@ public class BetsHistory : MonoBehaviour
 
         _isBetsHistoryRefreshing = isLoading;
     }
-    
 }
