@@ -64,7 +64,7 @@ public class BetsProcessor
             else if (contestant != null && contestant.Winner)
             {
                 stats.BetsWon++;
-                stats.MoneyGained += contestant.Coefficient * bet.BetAmount;
+                stats.MoneyGained += contestant.Coefficient * bet.BetAmount - bet.BetAmount;
             }
             else if (!bet.IsActive && !match.IsMatchCanceled)
             {
