@@ -14,8 +14,11 @@ public class Leaderboard : MonoBehaviour
     [SerializeField] private GameObject leaderboardSkeletonLoading;
     [SerializeField] private Material biggestGamblerMaterial;
     [SerializeField] private TextMeshProUGUI leaderboardExceptionText;
-    [SerializeField] private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
 
+    [SerializeField]
+    private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
+
+    private List<Match> _allMatchesList = new();
     private readonly Color32[] _gradientColors = { ColorHelper.PaleYellow, ColorHelper.LightGreen };
     private readonly float[] _gradientTimes = { 0.5f, 1.0f };
     private Gradient _biggestGamblerGradient;
@@ -49,6 +52,13 @@ public class Leaderboard : MonoBehaviour
 
     private void FetchAndDisplayLeaderboard()
     {
+        MatchesRepository.GetAllMatches().Then(list => _allMatchesList = list)
+            .Catch(exception =>
+            {
+                _allMatchesList = null;
+                Debug.LogError($"Failed to get all matches for leaderboard {exception}");
+            });
+
         UserRepository.GetAllUsers()
             .Then(ProcessUsers)
             .Catch(HandleLeaderboardError);
@@ -75,13 +85,15 @@ public class Leaderboard : MonoBehaviour
         for (var i = 0; i < topUsers.Count; i++)
         {
             var leaderboardElement = Instantiate(leaderboardElementPrefab, leaderboardGrid);
-            leaderboardElement.SetData(topUsers[i], topColors[i]);
+            leaderboardElement.SetData(topUsers[i], topColors[i], _allMatchesList);
 
             if (i == 0)
             {
-                leaderboardElement.SetData(topUsers[i], topColors[i], _biggestGamblerGradient, biggestGamblerMaterial);
+                leaderboardElement.SetData(topUsers[i], topColors[i], _allMatchesList, _biggestGamblerGradient,
+                    biggestGamblerMaterial);
             }
         }
+
         leaderboardSkeletonLoading.SetActive(false);
     }
 

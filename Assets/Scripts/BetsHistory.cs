@@ -62,6 +62,7 @@ public class BetsHistory : MonoBehaviour
         var betHistoryElements = new List<BetHistoryElement>();
         var betsWon = 0;
         var betsLost = 0;
+        var matchesCanceled = 0;
         double moneyGained = 0;
         double moneyLost = 0;
 
@@ -84,6 +85,10 @@ public class BetsHistory : MonoBehaviour
 
             betHistoryElements.Add(tempBetHistoryElement);
 
+            if (match.IsMatchCanceled)
+            {
+                matchesCanceled++;
+            }
             if (contestant.Winner)
             {
                 betsWon++;
@@ -103,7 +108,7 @@ public class BetsHistory : MonoBehaviour
         }
 
 
-        betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost);
+        betsHistoryTotalInfo.SetData(bets.Count, betsWon, betsLost, moneyGained, moneyLost, matchesCanceled);
 
         SetLoadingState(false);
         StartCoroutine(ScrollToTop());
