@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using Libs.Helpers;
 using Libs.Models;
-using Libs.Repositories;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,37 +19,28 @@ public class BetsHistory : MonoBehaviour
 
     private void OnEnable()
     {
-        DataMapper.OnMapData += RefreshBetsHistory;
-        BetsController.OnBetPosted += RefreshBetsHistory;
+        DataMapper.OnMapDataStarted += StartLoading;
+        DataMapper.OnMapDataFinished += FetchAndProcessBets;
+        BetsController.OnBetPosted += FetchAndProcessBets;
     }
 
-    private void RefreshBetsHistory()
+    private void StartLoading()
     {
         if (_isBetsHistoryRefreshing) return;
         betHistoryParent.ClearExistingElementsInParent();
-        FetchAndProcessBets();
+        SetLoadingState(true);
     }
-
-
+    
     private void FetchAndProcessBets()
     {
-        SetLoadingState(true);
-        MatchesRepository.GetAllMatches()
-            .Then(matches =>
-            {
-                if (BetCache.Bets != null)
-                    ProcessBets(BetCache.Bets, matches);
-                else
-                {
-                    SetLoadingState(false);
-                    HandleError("No bets found for user");
-                }
-            })
-            .Catch(exception =>
-            {
-                SetLoadingState(false);
-                HandleError($"Failed to load matches {exception}");
-            });
+        if (MatchCache.Matches == null || BetCache.Bets == null)
+        {
+            SetLoadingState(false);
+            HandleError("Failed to load matches ");
+            return;
+        }
+        
+        ProcessBets(BetCache.Bets, MatchCache.Matches);
     }
 
 

@@ -4,6 +4,7 @@ using System.Linq;
 using Libs.Helpers;
 using Libs.Models;
 using Libs.Repositories;
+using RSG;
 using TMPro;
 using UnityEngine;
 
@@ -17,8 +18,8 @@ public class Leaderboard : MonoBehaviour
 
     [SerializeField]
     private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
-
-    private List<Match> _allMatchesList = new();
+    
+    private List<User> _allUsersList = new();
     private readonly Color32[] _gradientColors = { ColorHelper.PaleYellow, ColorHelper.LightGreen };
     private readonly float[] _gradientTimes = { 0.5f, 1.0f };
     private Gradient _biggestGamblerGradient;
@@ -26,7 +27,8 @@ public class Leaderboard : MonoBehaviour
 
     private void OnEnable()
     {
-        DataMapper.OnMapData += RefreshLeaderboard;
+        DataMapper.OnMapDataStarted += StartLoading;
+        DataMapper.OnMapDataFinished += FetchAndDisplayLeaderboard;
     }
 
     private void Start()
@@ -34,13 +36,11 @@ public class Leaderboard : MonoBehaviour
         _biggestGamblerGradient = GradientHelper.CreateGradient(_gradientColors, _gradientTimes);
     }
 
-    private void RefreshLeaderboard()
+    private void StartLoading()
     {
         if (_isLeaderboardRefreshing) return;
-
         _isLeaderboardRefreshing = true;
         ClearLeaderboard();
-        FetchAndDisplayLeaderboard();
     }
 
     private void ClearLeaderboard()
@@ -52,22 +52,15 @@ public class Leaderboard : MonoBehaviour
 
     private void FetchAndDisplayLeaderboard()
     {
-        MatchesRepository.GetAllMatches().Then(list => _allMatchesList = list)
-            .Catch(exception =>
-            {
-                _allMatchesList = null;
-                Debug.LogError($"Failed to get all matches for leaderboard {exception}");
-            });
+        var promises = new List<IPromise> { WrapGetAllUsers() };
 
-        UserRepository.GetAllUsers()
-            .Then(ProcessUsers)
-            .Catch(HandleLeaderboardError);
+        Promise.All(promises).Then(ProcessUsers).Catch(HandleLeaderboardError);
     }
 
-    private void ProcessUsers(List<User> users)
+    private void ProcessUsers()
     {
-        ApplyBuffPurchasesToUsers(users);
-        var topUsers = users.OrderByDescending(u => u.balance).Take(3).ToList();
+        ApplyBuffPurchasesToUsers(_allUsersList);
+        var topUsers = _allUsersList.OrderByDescending(u => u.balance).Take(3).ToList();
         DisplayTopUsers(topUsers);
         _isLeaderboardRefreshing = false;
     }
@@ -85,16 +78,31 @@ public class Leaderboard : MonoBehaviour
         for (var i = 0; i < topUsers.Count; i++)
         {
             var leaderboardElement = Instantiate(leaderboardElementPrefab, leaderboardGrid);
-            leaderboardElement.SetData(topUsers[i], topColors[i], _allMatchesList);
+            leaderboardElement.SetData(topUsers[i], topColors[i], MatchCache.Matches);
 
             if (i == 0)
             {
-                leaderboardElement.SetData(topUsers[i], topColors[i], _allMatchesList, _biggestGamblerGradient,
+                leaderboardElement.SetData(topUsers[i], topColors[i], MatchCache.Matches, _biggestGamblerGradient,
                     biggestGamblerMaterial);
             }
         }
 
         leaderboardSkeletonLoading.SetActive(false);
+    }
+    
+    private IPromise WrapGetAllUsers()
+    {
+        var promise = new Promise();
+
+        UserRepository.GetAllUsers()
+            .Then(list =>
+            {
+                _allUsersList = list;
+                promise.Resolve();
+            })
+            .Catch(exception => promise.Reject(exception));
+
+        return promise;
     }
 
     private void HandleLeaderboardError(Exception exception)

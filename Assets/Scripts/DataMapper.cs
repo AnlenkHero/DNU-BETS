@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Libs.Helpers;
 using Libs.Repositories;
+using RSG;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,15 +18,18 @@ public class DataMapper : MonoBehaviour
     [SerializeField] private GameObject noMatchesPanel;
     [SerializeField] private Button refreshButton;
     [SerializeField] private GameObject dataMapperSkeletonLoading;
+    private IEnumerable<Match> _availableMatches;
     private float _cooldownTimer;
     private readonly float _cooldownPeriod = 3f;
     private bool _isDataMappingRefreshing;
-    public static event Action OnMapData;
+    public static event Action OnMapDataStarted;
+    public static event Action OnMapDataFinished;
 
     private void OnEnable()
     {
         FirebaseGoogleLogin.OnLoginFinished += MapData;
         NetworkCheck.OnInternetEstablished += MapData;
+        OnMapDataFinished += () => CreateMatchViews(_availableMatches.ToList());
     }
 
     private void Awake()
@@ -42,26 +47,24 @@ public class DataMapper : MonoBehaviour
     {
         if (!(_cooldownTimer <= 0) || _isDataMappingRefreshing) return;
 
-        InitializeUserData();
+        OnMapDataStarted?.Invoke();
         
+        InitializeUserData();
+
         _cooldownTimer = _cooldownPeriod;
         _isDataMappingRefreshing = true;
 
         PrepareToRefresh();
 
-        MatchesRepository.GetBettingAvailableMatches()
-            .Then(matches =>
+        var promises = new List<IPromise> { WrapGetMatches(), WrapGetAllBetsByUserId(UserData.UserId) };
+
+        Promise.All(promises)
+            .Catch(HandleDataMappingError)
+            .Finally(() =>
             {
-                BetsRepository.GetAllBetsByUserId(UserData.UserId)
-                    .Then(bets => BetCache.Bets = bets)
-                    .Catch(exception => Debug.LogError(exception.Message))
-                    .Finally(() =>
-                    {
-                        OnMapData?.Invoke();
-                        CreateMatchViews(matches);
-                        _isDataMappingRefreshing = false;
-                    });
-            }).Catch(HandleDataMappingError);
+                OnMapDataFinished?.Invoke();
+                _isDataMappingRefreshing = false;
+            });
     }
 
     private void PrepareToRefresh()
@@ -93,6 +96,37 @@ public class DataMapper : MonoBehaviour
         }
 
         dataMapperSkeletonLoading.SetActive(false);
+    }
+
+
+    private IPromise WrapGetMatches()
+    {
+        var promise = new Promise();
+
+        MatchesRepository.GetAllMatches().Then(list =>
+            {
+                MatchCache.Matches = list;
+                _availableMatches = list.Where(match => match.IsBettingAvailable);
+                promise.Resolve();
+            })
+            .Catch(exception => promise.Reject(exception));
+
+        return promise;
+    }
+
+    private IPromise WrapGetAllBetsByUserId(string userId)
+    {
+        var promise = new Promise();
+
+        BetsRepository.GetAllBetsByUserId(userId)
+            .Then(list =>
+            {
+                BetCache.Bets = list;
+                promise.Resolve();
+            })
+            .Catch(exception => promise.Reject(exception));
+
+        return promise;
     }
 
     private void InitializeUserData()
