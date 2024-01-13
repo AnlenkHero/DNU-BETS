@@ -7,10 +7,18 @@ public class BetsProcessor
 {
     public struct ProcessedBetDetail
     {
-        public Bet Bet;
-        public Match Match;
-        public DateTime DateTime;
-        public bool IsWinner;
+        public readonly Bet Bet;
+        public readonly Match Match;
+        public readonly DateTime DateTime;
+        public readonly bool IsWinner;
+
+        public ProcessedBetDetail(Bet bet, Match match, DateTime dateTime, bool isWinner)
+        {
+            Bet = bet;
+            Match = match;
+            DateTime = dateTime;
+            IsWinner = isWinner;
+        }
     }
     
     public struct BetStats
@@ -49,13 +57,7 @@ public class BetsProcessor
                 ? dateValue
                 : DateTime.Now;
 
-            stats.ProcessedBets.Add(new ProcessedBetDetail
-            {
-                Bet = bet,
-                Match = match,
-                DateTime = dateTime,
-                IsWinner = contestant != null && contestant.Winner
-            });
+            stats.ProcessedBets.Add(new ProcessedBetDetail(bet,match,dateTime, contestant is { Winner: true }));
 
             if (match.IsMatchCanceled)
             {

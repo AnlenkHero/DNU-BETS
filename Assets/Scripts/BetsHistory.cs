@@ -30,7 +30,7 @@ public class BetsHistory : MonoBehaviour
         betHistoryParent.ClearExistingElementsInParent();
         SetLoadingState(true);
     }
-    
+
     private void FetchAndProcessBets()
     {
         if (MatchCache.Matches == null || BetCache.Bets == null)
@@ -39,7 +39,7 @@ public class BetsHistory : MonoBehaviour
             HandleError("Failed to load matches ");
             return;
         }
-        
+
         ProcessBets(BetCache.Bets, MatchCache.Matches);
     }
 
@@ -53,21 +53,11 @@ public class BetsHistory : MonoBehaviour
             {
                 var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
 
-                tempBetHistoryElement.SetData(
-                    processedBet.Match.MatchTitle,
-                    processedBet.Match.Contestants.Find(c => c.Id == processedBet.Bet.ContestantId)?.Name,
-                    processedBet.Match.Contestants.Find(c => c.Id == processedBet.Bet.ContestantId)?.Coefficient ?? 0,
-                    processedBet.Bet.BetAmount,
-                    processedBet.Bet.IsActive,
-                    processedBet.IsWinner,
-                    processedBet.DateTime,
-                    processedBet.Match.IsMatchCanceled
-                );
+                tempBetHistoryElement.SetData(processedBet);
 
                 betHistoryElements.Add(tempBetHistoryElement);
             }
-
-
+            
             SortBetsHistory(betHistoryElements);
 
             betsHistoryTotalInfo.SetData(bets.Count, stats.BetsWon, stats.BetsLost, stats.MoneyGained, stats.MoneyLost,

@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Libs.Helpers;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class InfoPanel : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class InfoPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI infoText;
     [SerializeField] private Transform buttonsGrid;
     [SerializeField] private EmptyButton emptyButton;
+    [SerializeField] private RawImage panelImage;
 
     public static InfoPanel Instance;
 
@@ -40,6 +42,8 @@ public class InfoPanel : MonoBehaviour
         infoText.color = color;
         infoText.text = info ?? "";
         panel.SetActive(true);
+        DeleteImage();
+        
         if (callback == null)
         {
             AddButton("Close", HidePanel);
@@ -53,6 +57,19 @@ public class InfoPanel : MonoBehaviour
         button.SetData(buttonText,buttonAction, buttonColorString);
     }
 
+    public void SetImage(Texture texture)
+    {
+        panelImage.texture = texture;
+        panelImage.gameObject.SetActive(true);
+        infoText.rectTransform.SetTop(panelImage.rectTransform.rect.height);
+    }
+
+    private void DeleteImage()
+    {
+        panelImage.texture = null;
+        panelImage.gameObject.SetActive(false);
+        infoText.rectTransform.SetTop(0);
+    }
     public void HidePanel()
     {
         panel.SetActive(false);

@@ -1,7 +1,9 @@
 ﻿using System;
 using Libs.Helpers;
+using Libs.Models;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BetHistoryElement : MonoBehaviour
 {
@@ -11,20 +13,29 @@ public class BetHistoryElement : MonoBehaviour
     [SerializeField] private TextMeshProUGUI betAmountTMP;
     [SerializeField] private TextMeshProUGUI moneyLostOrGainedTMP;
     [SerializeField] private TextMeshProUGUI isWinTMP;
+    [SerializeField] private Button betHistoryButton;
     public DateTime Date;
 
-    public void SetData(string matchTitle, string contestantName, double coefficient, double betAmount, bool isActive,
-        bool isWin, DateTime dateTime, bool isCanceled)
+    public void SetData(BetsProcessor.ProcessedBetDetail processedBetDetail)
     {
-        matchTitleTMP.text = matchTitle;
-        contestantNameTMP.text = contestantName;
-        coefficientTMP.text = coefficient.ToString("F2");
-        betAmountTMP.text = $"{betAmount.ToString()}<color={ColorHelper.LightGreenString}>$</color>";
-        CheckWin(isWin, isActive, isCanceled, coefficient, betAmount);
-        Date = dateTime;
+        var contestant = processedBetDetail.Match.Contestants.Find(c => c.Id == processedBetDetail.Bet.ContestantId);
+
+        matchTitleTMP.text = processedBetDetail.Match.MatchTitle;
+        contestantNameTMP.text = contestant.Name;
+        coefficientTMP.text = contestant.Coefficient.ToString("F2");
+        
+        betAmountTMP.text =
+            $"{processedBetDetail.Bet.BetAmount.ToString()}<color={ColorHelper.LightGreenString}>$</color>";
+        
+        Date = processedBetDetail.DateTime;
+        
+        CheckWin(processedBetDetail.Bet.IsActive, processedBetDetail.IsWinner, processedBetDetail.Match.IsMatchCanceled,
+            contestant.Coefficient, processedBetDetail.Bet.BetAmount);
+        
+        betHistoryButton.onClick.AddListener(() => ShowAdditionalInfo(processedBetDetail.Match, contestant));
     }
 
-    private void CheckWin(bool isWin, bool isActive, bool isCanceled, double coefficient, double betAmount)
+    private void CheckWin(bool isActive, bool isWin, bool isCanceled, double coefficient, double betAmount)
     {
         if (isActive)
         {
@@ -55,5 +66,51 @@ public class BetHistoryElement : MonoBehaviour
 
         moneyLostOrGainedTMP.text = $"{amount.ToString()}<color={ColorHelper.LightGreenString}>$</color>";
         moneyLostOrGainedTMP.color = color;
+    }
+
+    private void ShowAdditionalInfo(Match match, Contestant contestant)
+    {
+        InfoPanel.ShowPanel(Color.white,
+            $"{match.MatchTitle}\n\n{GetAllContestantsInfo(match, contestant)}\n\n{Date.ToLocalTime():f}\n", () =>
+            {
+                LoadImageAndDisplayPanel(match);
+                InfoPanel.Instance.AddButton("Close", InfoPanel.Instance.HidePanel);
+            });
+    }
+
+    private string GetAllContestantsInfo(Match match, Contestant contestantBet)
+    {
+        string info = "";
+
+        foreach (var contestant in match.Contestants)
+        {
+            if (contestant.Winner)
+            {
+                info += $"<color={ColorHelper.LightGreenString}>{contestant.Name} - {contestant.Coefficient}</color>\n";
+                continue;
+            }
+
+            if (contestant == contestantBet)
+            {
+                info += $"<color={ColorHelper.PaleYellowString}>{contestant.Name} - {contestant.Coefficient}</color>\n";
+                continue;
+            }
+
+            info += $"<color={ColorHelper.HotPinkString}>{contestant.Name} - {contestant.Coefficient}</color>\n";
+        }
+
+        return info;
+    }
+
+    private void LoadImageAndDisplayPanel(Match match)
+    {
+        InfoPanel.Instance.SetImage(null);
+        TextureLoader.LoadTexture(this, match.ImageUrl, texture2D =>
+        {
+            if (texture2D != null)
+                InfoPanel.Instance.SetImage(texture2D);
+            else
+                Debug.Log("Texture failed to load.");
+        });
     }
 }
