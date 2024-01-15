@@ -234,7 +234,7 @@ namespace Libs.Repositories
         }
         
 
-        private static Promise<string> UploadImage(Texture2D imageToUpload, string fileName)
+        public static Promise<string> UploadImage(Texture2D imageToUpload, string fileName)
         {
             return new Promise<string>((resolve, reject) =>
             {

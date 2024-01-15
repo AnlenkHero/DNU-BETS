@@ -39,41 +39,61 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void Awake()
     {
+        SavePhoto.FunctionOnPickedFileReturn += path =>
+        {
+            Texture2D texture2D = SavePhoto.GetTexture2DIOS(path);
+            profileImage.texture = texture2D;
+
+            UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
+            {
+                MatchesRepository.UploadImage(texture2D, $"{Guid.NewGuid()}.png").Then(imageUrl =>
+                {
+                    MatchesRepository.DeleteImage(user.imageUrl).Then(_ =>
+                    {
+                        user.imageUrl = imageUrl;
+                        UserRepository.UpdateUserInfo(user)
+                            .Catch(Debug.Log);
+                    });
+                }).Catch(Debug.Log);
+            }).Catch(Debug.Log);
+        };
+
+        profileImageButton.onClick.AddListener(ShowProfilePanel);
+
         configuration = new GoogleSignInConfiguration
             { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
         CheckFirebaseDependencies();
         SignInWithGoogle();
-        
-        profileImageButton.onClick.AddListener(ShowProfilePanel);
 
-        /* var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000};
-              UserRepository.GetUserByUserId(user.userId).Then(userId =>
-              {
-                  UserData.Balance = userId.balance;
-                  UserData.Name = userId.userName;
-                  UserData.UserId = user.userId;
-                  OnLoginFinished?.Invoke();
-              }).Catch(errorUser =>
-              {
-                  UserRepository.SaveUser(user).Then(userId =>
-                  {
-                      UserData.Name = user.userName;
-                      UserData.Balance = user.balance;
-                      UserData.UserId = user.userId;
-                      OnLoginFinished?.Invoke();
-                  }).Catch(error => { Debug.LogError(error.Message); });
-              });*/
+        /*var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000 };
+        UserRepository.GetUserByUserId(user.userId).Then(userId =>
+        {
+            UserData.Balance = userId.balance;
+            UserData.Name = userId.userName;
+            UserData.UserId = user.userId;
+            OnLoginFinished?.Invoke();
+        }).Catch(errorUser =>
+        {
+            UserRepository.SaveUser(user).Then(userId =>
+            {
+                UserData.Name = user.userName;
+                UserData.Balance = user.balance;
+                UserData.UserId = user.userId;
+                OnLoginFinished?.Invoke();
+            }).Catch(error => { Debug.LogError(error.Message); });
+        });*/
     }
 
     private void ShowProfilePanel()
     {
         InfoPanel.ShowPanel(Color.white, callback: () =>
         {
+            InfoPanel.Instance.AddButton("Change photo", SavePhoto.PickPhoto);
             InfoPanel.Instance.AddButton("Sign out", OnSignOut);
             InfoPanel.Instance.AddButton("Close", InfoPanel.Instance.HidePanel);
         });
     }
-    
+
     private void CheckFirebaseDependencies()
     {
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
@@ -114,15 +134,15 @@ public class FirebaseGoogleLogin : MonoBehaviour
         GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnAuthenticationFinished);
     }
 
-    private void OnSignOut() 
+    private void OnSignOut()
     {
         AddToInformation("Calling SignOut");
         GoogleSignIn.DefaultInstance.SignOut();
-        
+
         UserData.UserId = "";
         UserData.Balance = 0;
         UserData.Name = "";
-        
+
         loginPanel.SetActive(true);
         InfoPanel.Instance.HidePanel();
     }
@@ -161,7 +181,6 @@ public class FirebaseGoogleLogin : MonoBehaviour
     {
         var user = CreateUserRequest(result);
         UpdateOrSaveUserData(user);
-        LoadUserProfileImage(user.imageUrl);
         SignInWithGoogleOnFirebase(result.IdToken);
     }
 
@@ -181,20 +200,23 @@ public class FirebaseGoogleLogin : MonoBehaviour
         UserRepository.GetUserByUserId(user.userId)
             .Then(userId =>
             {
-                UpdateUserData(user, userId);
+                LoadUserProfileImage(userId.imageUrl);
+                UpdateUserData(userId);
                 OnLoginFinished?.Invoke();
                 loginPanel.SetActive(false);
             })
-            .Catch(errorUser => { SaveNewUser(user); });
+            .Catch(errorUser =>
+            {
+                LoadUserProfileImage(user.imageUrl);
+                SaveNewUser(user);
+            });
     }
 
-    private void UpdateUserData(UserRequest user, User userId)
+    private void UpdateUserData(User userId)
     {
         UserData.Balance = userId.balance;
         UserData.Name = userId.userName;
-        UserData.UserId = user.userId;
-        userId.imageUrl = user.imageUrl;
-        userId.userName = user.userName;
+        UserData.UserId = userId.userId;
         UserRepository.UpdateUserInfo(userId);
     }
 
