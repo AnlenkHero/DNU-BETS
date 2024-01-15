@@ -48,7 +48,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
             {
                 MatchesRepository.UploadImage(texture2D, $"{Guid.NewGuid()}.png").Then(imageUrl =>
                 {
-                    MatchesRepository.DeleteImage(user.imageUrl).Then(_ =>
+                    MatchesRepository.DeleteImage(user.imageUrl).Finally(() =>
                     {
                         user.imageUrl = imageUrl;
                         UserRepository.UpdateUserInfo(user)
@@ -142,6 +142,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         UserData.UserId = "";
         UserData.Balance = 0;
         UserData.Name = "";
+        profileImage.texture = null;
 
         loginPanel.SetActive(true);
         InfoPanel.Instance.HidePanel();
