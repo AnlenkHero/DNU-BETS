@@ -47,12 +47,12 @@ public class DataMapper : MonoBehaviour
     {
         if (!(_cooldownTimer <= 0) || _isDataMappingRefreshing) return;
 
+        _cooldownTimer = _cooldownPeriod;
+        _isDataMappingRefreshing = true;
+        
         OnMapDataStarted?.Invoke();
         
         InitializeUserData();
-
-        _cooldownTimer = _cooldownPeriod;
-        _isDataMappingRefreshing = true;
 
         PrepareToRefresh();
 
@@ -72,6 +72,8 @@ public class DataMapper : MonoBehaviour
         noMatchesPanel.SetActive(false);
         dataMapperSkeletonLoading.SetActive(true);
         matchPanelParent.ClearExistingElementsInParent();
+        BetCache.Bets = null;
+        MatchCache.Matches = null;
     }
 
     private void HandleDataMappingError(Exception exception)

@@ -60,11 +60,7 @@ public class LeaderboardElement : MonoBehaviour
                     string info =
                         $"{user.userName}\n\nTotal Bets: {betStats.totalBets}\nWin/Lose: {betStats.winToLose}\nWin Percentage: \n{betStats.winPercentage}\nGained Money: \n{betStats.gainedMoney}\nLost Money: \n{betStats.lostMoney}";
 
-                    InfoPanel.ShowPanel(Color.white, info, () =>
-                    {
-                        InfoPanel.Instance.SetImage(profileImage.texture);
-                        InfoPanel.Instance.AddButton("Close", InfoPanel.Instance.HidePanel);
-                    });
+                    InfoPanel.ShowPanel(Color.white, info);
                 }))
                 .Catch(exception => Debug.LogError(exception.Message));
         }

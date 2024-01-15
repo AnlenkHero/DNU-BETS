@@ -89,6 +89,8 @@ public class BetsHistory : MonoBehaviour
         _isBetsHistoryRefreshing = false;
         betHistoryErrorTMP.gameObject.SetActive(true);
         betHistoryErrorTMP.text = message;
+        betsHistoryTotalInfo.SetData(0, 0, 0, 0, 0,
+            0);
         Debug.LogError(message);
     }
 

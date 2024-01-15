@@ -22,6 +22,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI statusText;
     [SerializeField] private RawImage profileImage;
+    [SerializeField] private Button profileImageButton;
     [SerializeField] private GameObject loginPanel;
     private bool _isSignInInProgress = false;
     public static Action OnLoginFinished;
@@ -42,6 +43,8 @@ public class FirebaseGoogleLogin : MonoBehaviour
             { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
         CheckFirebaseDependencies();
         SignInWithGoogle();
+        
+        profileImageButton.onClick.AddListener(ShowProfilePanel);
 
         /* var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000};
               UserRepository.GetUserByUserId(user.userId).Then(userId =>
@@ -62,6 +65,15 @@ public class FirebaseGoogleLogin : MonoBehaviour
               });*/
     }
 
+    private void ShowProfilePanel()
+    {
+        InfoPanel.ShowPanel(Color.white, callback: () =>
+        {
+            InfoPanel.Instance.AddButton("Sign out", OnSignOut);
+            InfoPanel.Instance.AddButton("Close", InfoPanel.Instance.HidePanel);
+        });
+    }
+    
     private void CheckFirebaseDependencies()
     {
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
@@ -102,6 +114,18 @@ public class FirebaseGoogleLogin : MonoBehaviour
         GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnAuthenticationFinished);
     }
 
+    private void OnSignOut() 
+    {
+        AddToInformation("Calling SignOut");
+        GoogleSignIn.DefaultInstance.SignOut();
+        
+        UserData.UserId = "";
+        UserData.Balance = 0;
+        UserData.Name = "";
+        
+        loginPanel.SetActive(true);
+        InfoPanel.Instance.HidePanel();
+    }
 
     internal void OnAuthenticationFinished(Task<GoogleSignInUser> task)
     {
