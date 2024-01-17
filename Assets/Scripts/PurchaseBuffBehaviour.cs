@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class PurchaseBuffBehaviour : MonoBehaviour
 {
-    private int _buffPrice;
+    private double _buffPrice;
     [SerializeField] private MoneyView moneyView;
     [SerializeField] private Button purchaseBuffButton;
 

@@ -5,6 +5,7 @@ namespace Libs.Models
     [Serializable]
     public class AppSettings
     {
-        public int buffPrice;
+        public double buffPrice;
+        public double defaultBalance;
     }
 }

@@ -15,10 +15,10 @@ public class BetsHistoryTotalInfo : MonoBehaviour
         totalBets.text = betsCount.ToString();
         winToLose.text = $"{betsWon.ToString()} - {betsLost.ToString()}";
 
-        if (betsCount > 0)
+        if (betsCount > 0 && (betsCount - matchesCanceled) > 0)
         {
             double percentage = (double)betsWon / (betsCount - matchesCanceled) * 100;
-            winPercentage.text = $"{percentage.ToString("F2")}<color=#000000>%</color> ";
+            winPercentage.text = $"{percentage:F2}<color=#000000>%</color> ";
             
             switch (percentage)
             {

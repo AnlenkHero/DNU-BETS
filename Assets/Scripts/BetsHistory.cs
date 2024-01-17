@@ -36,7 +36,7 @@ public class BetsHistory : MonoBehaviour
         if (MatchCache.Matches == null || BetCache.Bets == null)
         {
             SetLoadingState(false);
-            HandleError("Failed to load matches ");
+            HandleError("No bets found");
             return;
         }
 

@@ -9,11 +9,19 @@ public class ResetBehaviour : MonoBehaviour
     [SerializeField] private MoneyView moneyView;
     [SerializeField] private Button resetButton;
 
-    private const int BalanceToReset = 300;
+    private double _balanceToReset = 300;
 
     private void Awake()
     {
         resetButton.onClick.AddListener(CheckConditions);
+        SetBalanceToReset();
+    }
+
+    private void SetBalanceToReset()
+    {
+        AppSettingsRepository.GetAppSettings()
+            .Then(settings => _balanceToReset = settings.defaultBalance)
+            .Catch(_ => _balanceToReset = 300);
     }
 
     private void CheckConditions()
@@ -21,7 +29,7 @@ public class ResetBehaviour : MonoBehaviour
         BetsRepository.GetAllBetsByUserId(UserData.UserId).Then(bets =>
         {
             var hasActiveBets = bets.Any(bet => bet.IsActive);
-            if (moneyView.Balance < BalanceToReset && !hasActiveBets)
+            if (moneyView.Balance < _balanceToReset && !hasActiveBets)
                 ShowResetPanel();
             else
             {
@@ -30,7 +38,7 @@ public class ResetBehaviour : MonoBehaviour
             }
         }).Catch(_ =>
         {
-            if (moneyView.Balance < BalanceToReset)
+            if (moneyView.Balance < _balanceToReset)
                 ShowResetPanel();
             else
             {
@@ -42,11 +50,12 @@ public class ResetBehaviour : MonoBehaviour
 
     private void ShowResetPanel()
     {
-        InfoPanel.ShowPanel(ColorHelper.PaleYellow, "CONFIRM RESET BALANCE TO 300$?",
+        InfoPanel.ShowPanel(ColorHelper.PaleYellow, $"CONFIRM RESET BALANCE TO {_balanceToReset}<color={ColorHelper.LightGreenString}>$</color>?",
             () =>
             {
                 InfoPanel.Instance.AddButton("Reset Money", ResetMoney, ColorHelper.LightGreenString);
-                InfoPanel.Instance.AddButton("Decline", () => InfoPanel.Instance.HidePanel(), ColorHelper.HotPinkString);
+                InfoPanel.Instance.AddButton("Decline", () => InfoPanel.Instance.HidePanel(),
+                    ColorHelper.HotPinkString);
             });
     }
 
@@ -54,10 +63,10 @@ public class ResetBehaviour : MonoBehaviour
     {
         UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
         {
-            user.balance = BalanceToReset;
+            user.balance = _balanceToReset;
             UserRepository.UpdateUserInfo(user).Then(helper =>
                 {
-                    moneyView.Balance = BalanceToReset;
+                    moneyView.Balance = _balanceToReset;
                     InfoPanel.ShowPanel(ColorHelper.LightGreen,
                         "Success money reset");
                     Debug.Log("Success money reset");

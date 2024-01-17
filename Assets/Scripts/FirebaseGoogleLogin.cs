@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Firebase;
@@ -16,15 +15,15 @@ using UnityEngine.UI;
 public class FirebaseGoogleLogin : MonoBehaviour
 {
     public string webClientId = "1062902385276-u12o6kiqrmjcssl54u5i2n4cg17orqqb.apps.googleusercontent.com";
-
-    private FirebaseAuth auth;
-    private GoogleSignInConfiguration configuration;
-    [SerializeField] private TextMeshProUGUI nameText;
+    
     [SerializeField] private TextMeshProUGUI statusText;
     [SerializeField] private RawImage profileImage;
     [SerializeField] private Button profileImageButton;
     [SerializeField] private GameObject loginPanel;
-    private bool _isSignInInProgress = false;
+    
+    private FirebaseAuth _auth;
+    private GoogleSignInConfiguration _configuration;
+    private bool _isSignInInProgress;
     public static Action OnLoginFinished;
 
     private void OnEnable()
@@ -39,33 +38,16 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void Awake()
     {
-        SavePhoto.FunctionOnPickedFileReturn += path =>
-        {
-            Texture2D texture2D = SavePhoto.GetTexture2DIOS(path);
-            profileImage.texture = texture2D;
-
-            UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
-            {
-                MatchesRepository.UploadImage(texture2D, $"{Guid.NewGuid()}.png").Then(imageUrl =>
-                {
-                    MatchesRepository.DeleteImage(user.imageUrl).Finally(() =>
-                    {
-                        user.imageUrl = imageUrl;
-                        UserRepository.UpdateUserInfo(user)
-                            .Catch(Debug.Log);
-                    });
-                }).Catch(Debug.Log);
-            }).Catch(Debug.Log);
-        };
-
+        SavePhoto.FunctionOnPickedFileReturn += ChangePhoto;
         profileImageButton.onClick.AddListener(ShowProfilePanel);
+        
+        LogIn();
+        //DebugLogIn();
+    }
 
-        configuration = new GoogleSignInConfiguration
-            { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
-        CheckFirebaseDependencies();
-        SignInWithGoogle();
-
-        /*var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000 };
+    private static void DebugLogIn()
+    {
+        var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000 };
         UserRepository.GetUserByUserId(user.userId).Then(userId =>
         {
             UserData.Balance = userId.balance;
@@ -81,7 +63,34 @@ public class FirebaseGoogleLogin : MonoBehaviour
                 UserData.UserId = user.userId;
                 OnLoginFinished?.Invoke();
             }).Catch(error => { Debug.LogError(error.Message); });
-        });*/
+        });
+    }
+
+    private void LogIn()
+    {
+        _configuration = new GoogleSignInConfiguration
+            { WebClientId = webClientId, RequestEmail = true, RequestIdToken = true };
+        CheckFirebaseDependencies();
+        SignInWithGoogle();
+    }
+
+    private void ChangePhoto(string path)
+    {
+        Texture2D texture2D = SavePhoto.GetTexture2DIOS(path);
+        profileImage.texture = texture2D;
+
+        UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
+        {
+            MatchesRepository.UploadImage(texture2D, $"{Guid.NewGuid()}.png").Then(imageUrl =>
+            {
+                MatchesRepository.DeleteImage(user.imageUrl).Finally(() =>
+                {
+                    user.imageUrl = imageUrl;
+                    UserRepository.UpdateUserInfo(user)
+                        .Catch(Debug.Log);
+                });
+            }).Catch(Debug.Log);
+        }).Catch(Debug.Log);
     }
 
     private void ShowProfilePanel()
@@ -101,7 +110,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
             if (task.IsCompleted)
             {
                 if (task.Result == DependencyStatus.Available)
-                    auth = FirebaseAuth.DefaultInstance;
+                    _auth = FirebaseAuth.DefaultInstance;
                 else
                     AddToInformation("Could not resolve all Firebase dependencies: " + task.Result.ToString());
             }
@@ -126,7 +135,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void OnSignIn()
     {
-        GoogleSignIn.Configuration = configuration;
+        GoogleSignIn.Configuration = _configuration;
         GoogleSignIn.Configuration.UseGameSignIn = false;
         GoogleSignIn.Configuration.RequestIdToken = true;
         AddToInformation("Calling SignIn");
@@ -191,7 +200,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         {
             userId = result.UserId,
             userName = result.DisplayName,
-            balance = 1000,
+            balance = 0,
             imageUrl = result.ImageUrl.ToString()
         };
     }
@@ -223,16 +232,22 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void SaveNewUser(UserRequest user)
     {
-        UserRepository.SaveUser(user)
-            .Then(userId =>
+        AppSettingsRepository.GetAppSettings()
+            .Then(settings =>
             {
-                UserData.Name = user.userName;
-                UserData.Balance = user.balance;
-                UserData.UserId = user.userId;
-                OnLoginFinished?.Invoke();
-                loginPanel.SetActive(false);
-            })
-            .Catch(error => Debug.LogError(error.Message));
+                user.balance = settings.defaultBalance;
+
+                UserRepository.SaveUser(user)
+                    .Then(userId =>
+                    {
+                        UserData.Name = user.userName;
+                        UserData.Balance = user.balance;
+                        UserData.UserId = user.userId;
+                        OnLoginFinished?.Invoke();
+                        loginPanel.SetActive(false);
+                    })
+                    .Catch(error => Debug.LogError(error.Message));
+            }).Catch(exception => AddToInformation($"Failed to get AppSettings {exception}"));
     }
 
     private void LoadUserProfileImage(string imageUrl)
@@ -255,7 +270,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
     {
         Credential credential = GoogleAuthProvider.GetCredential(idToken, null);
 
-        auth.SignInWithCredentialAsync(credential).ContinueWith(task =>
+        _auth.SignInWithCredentialAsync(credential).ContinueWith(task =>
         {
             AggregateException ex = task.Exception;
 
