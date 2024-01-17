@@ -76,7 +76,19 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void ChangePhoto(string path)
     {
-        Texture2D texture2D = SavePhoto.GetTexture2DIOS(path);
+        Texture2D originalTexture = SavePhoto.GetTexture2DIOS(path);
+        
+        int maxWidth = 400; 
+        int maxHeight = 400; 
+        
+        Texture2D resizedTexture = TextureScale.Bilinear(originalTexture, maxWidth, maxHeight);
+        
+        byte[] compressedBytes = resizedTexture.EncodeToJPG(75); 
+        
+        Texture2D texture2D = new Texture2D(resizedTexture.width, resizedTexture.height);
+        
+        texture2D.LoadImage(compressedBytes);
+        
         profileImage.texture = texture2D;
 
         UserRepository.GetUserByUserId(UserData.UserId).Then(user =>

@@ -69,6 +69,11 @@ public class SavePhoto : MonoBehaviour
         return newText_;
     }
 
+    public static Texture2D ResizeTexture(Texture2D texture2D, int maxWidth, int maxHeight)
+    {
+        TextureScale.Bilinear(texture2D, maxWidth, maxHeight);
+        return texture2D;
+    }
 
 
     public async void AskPermissionGal()
