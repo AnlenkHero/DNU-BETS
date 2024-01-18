@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Firebase;
 using Firebase.Auth;
 using Google;
+using ImageCropperNamespace;
 using Libs.Helpers;
 using Libs.Models;
 using Libs.Models.RequestModels;
@@ -15,12 +16,12 @@ using UnityEngine.UI;
 public class FirebaseGoogleLogin : MonoBehaviour
 {
     public string webClientId = "1062902385276-u12o6kiqrmjcssl54u5i2n4cg17orqqb.apps.googleusercontent.com";
-    
+
     [SerializeField] private TextMeshProUGUI statusText;
     [SerializeField] private RawImage profileImage;
     [SerializeField] private Button profileImageButton;
     [SerializeField] private GameObject loginPanel;
-    
+
     private FirebaseAuth _auth;
     private GoogleSignInConfiguration _configuration;
     private bool _isSignInInProgress;
@@ -40,7 +41,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
     {
         SavePhoto.FunctionOnPickedFileReturn += ChangePhoto;
         profileImageButton.onClick.AddListener(ShowProfilePanel);
-        
+
         LogIn();
         //DebugLogIn();
     }
@@ -78,31 +79,48 @@ public class FirebaseGoogleLogin : MonoBehaviour
     {
         Texture2D originalTexture = SavePhoto.GetTexture2DIOS(path);
         
-        int maxWidth = 400; 
-        int maxHeight = 400; 
-        
-        Texture2D resizedTexture = TextureScale.Bilinear(originalTexture, maxWidth, maxHeight);
-        
-        byte[] compressedBytes = resizedTexture.EncodeToJPG(75); 
-        
-        Texture2D texture2D = new Texture2D(resizedTexture.width, resizedTexture.height);
-        
-        texture2D.LoadImage(compressedBytes);
-        
-        profileImage.texture = texture2D;
+        int maxWidth = 400;
+        int maxHeight = 400;
 
-        UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
+        float originalWidth = originalTexture.width;
+        float originalHeight = originalTexture.height;
+        float aspectRatio = originalWidth / originalHeight;
+        
+        int newWidth, newHeight;
+        if (originalWidth > originalHeight)
         {
-            MatchesRepository.UploadImage(texture2D, $"{Guid.NewGuid()}.png").Then(imageUrl =>
+            newWidth = maxWidth;
+            newHeight = Mathf.RoundToInt(maxWidth / aspectRatio);
+        }
+        else
+        {
+            newHeight = maxHeight;
+            newWidth = Mathf.RoundToInt(maxHeight * aspectRatio);
+        }
+
+        Texture2D resizedTexture = TextureScale.Bilinear(originalTexture, newWidth, newHeight);
+        byte[] compressedBytes = resizedTexture.EncodeToJPG(75);
+        Texture2D texture2D = new Texture2D(newWidth, newHeight);
+        texture2D.LoadImage(compressedBytes);
+
+        ImageCropperDemo.Crop(texture2D, (croppedTexture) =>
+        {
+            Texture2D readableTexture = croppedTexture;
+
+            profileImage.texture = readableTexture;
+            UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
             {
-                MatchesRepository.DeleteImage(user.imageUrl).Finally(() =>
+                MatchesRepository.UploadImage(readableTexture, $"{Guid.NewGuid()}.png").Then(imageUrl =>
                 {
-                    user.imageUrl = imageUrl;
-                    UserRepository.UpdateUserInfo(user)
-                        .Catch(Debug.Log);
-                });
+                    MatchesRepository.DeleteImage(user.imageUrl).Finally(() =>
+                    {
+                        user.imageUrl = imageUrl;
+                        UserRepository.UpdateUserInfo(user)
+                            .Catch(Debug.Log);
+                    });
+                }).Catch(Debug.Log);
             }).Catch(Debug.Log);
-        }).Catch(Debug.Log);
+        });
     }
 
     private void ShowProfilePanel()

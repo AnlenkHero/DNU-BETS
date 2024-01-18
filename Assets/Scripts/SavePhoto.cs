@@ -1,13 +1,11 @@
 using System;
 using UnityEngine;
-using Unity.VisualScripting;
-using UnityEngine.Events;
 
 
 public class SavePhoto : MonoBehaviour
 {
     private string _finalPath;
-    public UnityEvent Function_onSaved_Return;
+    public event  Action Function_onSaved_Return;
 
     private NativeGallery.Permission _permissionGal;
     public static Action<string> FunctionOnPickedFileReturn;
@@ -37,7 +35,6 @@ public class SavePhoto : MonoBehaviour
             if (path != null)
             {
                 _finalPath = path;
-                Variables.ActiveScene.Set("Picked File", _finalPath);
                 FunctionOnPickedFileReturn?.Invoke(_finalPath);
             }
         });
@@ -55,7 +52,7 @@ public class SavePhoto : MonoBehaviour
             {
                 Debug.Log("Photo is saved to Camera Roll on phone device.");
 
-                Function_onSaved_Return.Invoke(); // Triggered [On Unity Event] in Visual Scripting
+                Function_onSaved_Return?.Invoke(); 
             }
 
         });
