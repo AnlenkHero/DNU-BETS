@@ -12,6 +12,7 @@ public class InfoPanel : MonoBehaviour
     [SerializeField] private Transform buttonsGrid;
     [SerializeField] private EmptyButton emptyButton;
     [SerializeField] private RawImage panelImage;
+    public Transform createdElementsParent;
 
     public static InfoPanel Instance;
 
@@ -38,6 +39,7 @@ public class InfoPanel : MonoBehaviour
 
     private void DisplayPanel(Color color, string info, Action callback)
     {
+        createdElementsParent.ClearExistingElementsInParent();
         buttonsGrid.ClearExistingElementsInParent();
         infoText.color = color;
         infoText.text = info ?? "";

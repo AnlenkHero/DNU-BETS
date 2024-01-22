@@ -21,6 +21,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
     [SerializeField] private RawImage profileImage;
     [SerializeField] private Button profileImageButton;
     [SerializeField] private GameObject loginPanel;
+    [SerializeField] private NameChanger nameChangerElement;
 
     private FirebaseAuth _auth;
     private GoogleSignInConfiguration _configuration;
@@ -42,8 +43,8 @@ public class FirebaseGoogleLogin : MonoBehaviour
         SavePhoto.FunctionOnPickedFileReturn += ChangePhoto;
         profileImageButton.onClick.AddListener(ShowProfilePanel);
 
-        LogIn();
-        //DebugLogIn();
+        //LogIn();
+        DebugLogIn();
     }
 
     private static void DebugLogIn()
@@ -127,9 +128,10 @@ public class FirebaseGoogleLogin : MonoBehaviour
     {
         InfoPanel.ShowPanel(Color.white, callback: () =>
         {
-            InfoPanel.Instance.AddButton("Change photo", SavePhoto.PickPhoto);
-            InfoPanel.Instance.AddButton("Sign out", OnSignOut);
-            InfoPanel.Instance.AddButton("Close", InfoPanel.Instance.HidePanel);
+            Instantiate(nameChangerElement, InfoPanel.Instance.createdElementsParent);
+            InfoPanel.Instance.AddButton("Change photo", SavePhoto.PickPhoto, ColorHelper.PaleYellowString);
+            InfoPanel.Instance.AddButton("Sign out", OnSignOut, ColorHelper.HotPinkString);
+            InfoPanel.Instance.AddButton("Close", InfoPanel.Instance.HidePanel, ColorHelper.PaleYellowString);
         });
     }
 
