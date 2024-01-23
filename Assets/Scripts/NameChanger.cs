@@ -9,7 +9,7 @@ public class NameChanger : MonoBehaviour
     [SerializeField] private TMP_InputField nameInputFieldField;
     [SerializeField] private Button saveButton;
 
-    public static event Action onNameChanged;
+    public static event Action OnNameChanged;
     private void OnEnable()
     {
         saveButton.onClick.AddListener(Save);
@@ -19,7 +19,8 @@ public class NameChanger : MonoBehaviour
     {
         if (String.IsNullOrWhiteSpace(nameInputFieldField.text))
         {
-            nameInputFieldField.text = "Name is empty...";
+            nameInputFieldField.text = null;
+            nameInputFieldField.placeholder.GetComponent<TextMeshProUGUI>().text = "Name is empty...";
         }
         else
         {
@@ -29,7 +30,7 @@ public class NameChanger : MonoBehaviour
                 UserRepository.UpdateUserInfo(user).Then(_ =>
                 {
                     UserData.Name = user.userName;
-                    onNameChanged?.Invoke();
+                    OnNameChanged?.Invoke();
                 });
             });
         }

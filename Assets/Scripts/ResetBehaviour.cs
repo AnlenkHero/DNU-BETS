@@ -33,7 +33,7 @@ public class ResetBehaviour : MonoBehaviour
                 ShowResetPanel();
             else
             {
-                InfoPanel.ShowPanel(ColorHelper.HotPink,
+                InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                     $"You have active bets or your balance greater or equal than 300<color={ColorHelper.LightGreenString}>$</color>");
             }
         }).Catch(_ =>
@@ -42,7 +42,7 @@ public class ResetBehaviour : MonoBehaviour
                 ShowResetPanel();
             else
             {
-                InfoPanel.ShowPanel(ColorHelper.HotPink,
+                InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                     $"Your balance greater than 300<color={ColorHelper.LightGreenString}>$</color>");
             }
         });
@@ -50,11 +50,11 @@ public class ResetBehaviour : MonoBehaviour
 
     private void ShowResetPanel()
     {
-        InfoPanel.ShowPanel(ColorHelper.PaleYellow, $"CONFIRM RESET BALANCE TO {_balanceToReset}<color={ColorHelper.LightGreenString}>$</color>?",
+        InfoPanelManager.ShowPanel(ColorHelper.PaleYellow, $"CONFIRM RESET BALANCE TO {_balanceToReset}<color={ColorHelper.LightGreenString}>$</color>?",
             () =>
             {
-                InfoPanel.Instance.AddButton("Reset Money", ResetMoney, ColorHelper.LightGreenString);
-                InfoPanel.Instance.AddButton("Decline", () => InfoPanel.Instance.HidePanel(),
+                InfoPanelManager.Instance.AddButton("Reset Money", ResetMoney, ColorHelper.LightGreenString);
+                InfoPanelManager.Instance.AddButton("Decline", () => InfoPanelManager.Instance.HidePanel(),
                     ColorHelper.HotPinkString);
             });
     }
@@ -67,20 +67,20 @@ public class ResetBehaviour : MonoBehaviour
             UserRepository.UpdateUserInfo(user).Then(helper =>
                 {
                     moneyView.Balance = _balanceToReset;
-                    InfoPanel.ShowPanel(ColorHelper.LightGreen,
+                    InfoPanelManager.ShowPanel(ColorHelper.LightGreen,
                         "Success money reset");
                     Debug.Log("Success money reset");
                 })
                 .Catch(exception =>
                 {
-                    InfoPanel.ShowPanel(ColorHelper.HotPink,
+                    InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                         $"Failed to reset user balance. {exception.Message}");
                 });
         }).Catch(exception =>
         {
-            InfoPanel.ShowPanel(ColorHelper.HotPink,
+            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                 $"Failed to get user by id. {exception.Message}");
         });
-        InfoPanel.Instance.HidePanel();
+        InfoPanelManager.Instance.HidePanel();
     }
 }

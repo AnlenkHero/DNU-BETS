@@ -107,7 +107,7 @@ namespace Libs.Repositories
             {
                 RestClient.Get($"{FirebaseDbUrl}matches.json").Then(response =>
                 {
-                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, MatchRequest>>(response.Text);
 
                     if (rawMatches == null || !rawMatches.Any())
                     {
@@ -138,7 +138,7 @@ namespace Libs.Repositories
 
                 RestClient.Get(queryUrl).Then(response =>
                 {
-                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, MatchRequest>>(response.Text);
                     List<Match> matches = ExtractMatchesFromRawData(rawMatches);
                     resolve(matches);
                 }).Catch(error =>
@@ -156,7 +156,7 @@ namespace Libs.Repositories
 
                 RestClient.Get(url).Then(response =>
                 {
-                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, MatchRequest>>(response.Text);
                     if (rawMatches == null || !rawMatches.Any())
                     {
                         reject(new Exception("No matches found"));
@@ -181,7 +181,7 @@ namespace Libs.Repositories
 
                 RestClient.Get(queryUrl).Then(response =>
                 {
-                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(response.Text);
+                    var rawMatches = JsonConvert.DeserializeObject<Dictionary<string, MatchRequest>>(response.Text);
                     List<Match> matches = ExtractMatchesFromRawData(rawMatches);
                     resolve(matches);
                 }).Catch(error =>
@@ -190,7 +190,7 @@ namespace Libs.Repositories
                 });
             });
         }
-        private static List<Match> ExtractMatchesFromRawData(Dictionary<string, Dictionary<string, object>> rawMatches)
+        private static List<Match> ExtractMatchesFromRawData(Dictionary<string, MatchRequest> rawMatches)
         {
             List<Match> matches = new List<Match>();
             foreach (var rawMatchKey in rawMatches.Keys)
@@ -200,34 +200,27 @@ namespace Libs.Repositories
                 Match match = new Match
                 {
                     Id = rawMatchKey,
-                    ImageUrl = rawMatch["ImageUrl"] as string,
-                    MatchTitle = rawMatch["MatchTitle"] as string,
-                    IsBettingAvailable = (bool)rawMatch["IsBettingAvailable"],
-                    IsMatchCanceled = rawMatch.TryGetValue("IsMatchCanceled",out object matchCanceledObject) && (bool)matchCanceledObject, 
-                    FinishedDateUtc = rawMatch.TryGetValue("FinishedDateUtc", out var finishedDate)
-                        ? finishedDate as string
-                        : null,
+                    ImageUrl = rawMatch.ImageUrl,
+                    MatchTitle = rawMatch.MatchTitle,
+                    IsBettingAvailable = rawMatch.IsBettingAvailable,
+                    IsMatchCanceled = rawMatch.IsMatchCanceled,
+                    FinishedDateUtc = rawMatch.FinishedDateUtc,
                     Contestants = new List<Contestant>()
                 };
-
-                if (rawMatch.TryGetValue("Contestants", out var contestantsValue))
+                
+                for (int i = 0; i < rawMatch.Contestants.Count; i++)
                 {
-                    string contestantsString = Convert.ToString(contestantsValue);
-                    List<Dictionary<string, object>> rawContestants =
-                        JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(contestantsString);
-                    for (int i = 0; i < rawContestants.Count; i++)
-                    {
-                        var contestantDict = rawContestants[i];
-                        match.Contestants.Add(new Contestant
-                        {
-                            Id = i.ToString(),
-                            Name = contestantDict["Name"] as string,
-                            Coefficient = Convert.ToDouble(contestantDict["Coefficient"]),
-                            Winner = (bool)contestantDict["Winner"]
-                        });
-                    }
-                }
+                    var contestantRequest = rawMatch.Contestants[i];
 
+                    match.Contestants.Add(new Contestant
+                    {
+                        Id = i.ToString(),
+                        Name = contestantRequest.Name,         
+                        Coefficient = contestantRequest.Coefficient,  
+                        Winner = contestantRequest.Winner      
+                    });
+                }
+                
                 matches.Add(match);
             }
             return matches;

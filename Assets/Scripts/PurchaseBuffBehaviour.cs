@@ -19,11 +19,11 @@ public class PurchaseBuffBehaviour : MonoBehaviour
 
     private void ShowPurchaseBuffPanel()
     {
-        InfoPanel.ShowPanel(ColorHelper.PaleYellow, "CONFIRM BUFF PURCHASE?",
+        InfoPanelManager.ShowPanel(ColorHelper.PaleYellow, "CONFIRM BUFF PURCHASE?",
                 () =>
                 {
-                    InfoPanel.Instance.AddButton("Purchase Buff", PurchaseBuff, ColorHelper.LightGreenString);
-                    InfoPanel.Instance.AddButton("Decline", () => InfoPanel.Instance.HidePanel(), ColorHelper.HotPinkString);
+                    InfoPanelManager.Instance.AddButton("Purchase Buff", PurchaseBuff, ColorHelper.LightGreenString);
+                    InfoPanelManager.Instance.AddButton("Decline", () => InfoPanelManager.Instance.HidePanel(), ColorHelper.HotPinkString);
                 });
     }
     private void PurchaseBuff()
@@ -49,29 +49,29 @@ public class PurchaseBuffBehaviour : MonoBehaviour
                     UserRepository.UpdateUserInfo(user).Then(helper =>
                         {
                             moneyView.Balance -= _buffPrice;
-                            InfoPanel.ShowPanel(ColorHelper.LightGreen,
+                            InfoPanelManager.ShowPanel(ColorHelper.LightGreen,
                                 "Success buff purchase");
                             Debug.Log("Success buff purchase");
                         })
                         .Catch(exception =>
                         {
-                            InfoPanel.ShowPanel(ColorHelper.HotPink,
+                            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                                 $"Failed to purchase buff. {exception.Message}");
                         });
                 }).Catch(exception =>
                 {
-                    InfoPanel.ShowPanel(ColorHelper.HotPink,
+                    InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                         $"Failed to get user by id. {exception.Message}");
                 });
             }
             else
             {
-                InfoPanel.ShowPanel(ColorHelper.HotPink,
+                InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                     $"You dont have enough money. Buff price is <color={ColorHelper.LightGreenString}>{_buffPrice}$</color>");
             }
         }).Catch(exception =>
         {
-            InfoPanel.ShowPanel(ColorHelper.HotPink,
+            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                 $"Failed to get buff price.\n{exception.Message}");
         });
     }

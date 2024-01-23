@@ -45,7 +45,7 @@ public class BetsController : MonoBehaviour
             {
                 BetsRepository.SaveBet(newBetRequest).Then(betId =>
                 {
-                    InfoPanel.ShowPanel(ColorHelper.LightGreen,
+                    InfoPanelManager.ShowPanel(ColorHelper.LightGreen,
                         $"Bet has been successfully made. \nContestant name: {_betButtonEventArgs.Contestant.Name} \nBet amount: {betAmount}$ \nCoefficient: {_betButtonEventArgs.Contestant.Coefficient}");
 
                     var tempBalance = moneyView.Balance - betAmount;
@@ -60,12 +60,12 @@ public class BetsController : MonoBehaviour
                             Debug.Log("success money update");
                         }).Catch(exception =>
                         {
-                            InfoPanel.ShowPanel(ColorHelper.HotPink,
+                            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                                 $"Error to update balance. {exception.Message}");
                         });
                     }).Catch(exception =>
                     {
-                        InfoPanel.ShowPanel(ColorHelper.HotPink,
+                        InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                             $"Error to get user by id. {exception.Message}");
                     });
 
@@ -84,13 +84,13 @@ public class BetsController : MonoBehaviour
                     OnBetPosted?.Invoke();
                 }).Catch(exception =>
                 {
-                    InfoPanel.ShowPanel(ColorHelper.HotPink,
+                    InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                         $"Error to make bet. {exception.Message}");
                 });
             }
             else
             {
-                InfoPanel.ShowPanel(ColorHelper.HotPink,
+                InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                     "Betting not available for this match");
                 foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
                 {
@@ -101,7 +101,7 @@ public class BetsController : MonoBehaviour
             }
         }).Catch(exception =>
         {
-            InfoPanel.ShowPanel(ColorHelper.HotPink,
+            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                 $"Error to get match by id for bet. {exception.Message}");
             foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
             {

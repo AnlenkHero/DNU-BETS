@@ -70,11 +70,11 @@ public class BetHistoryElement : MonoBehaviour
 
     private void ShowAdditionalInfo(Match match, Contestant contestant)
     {
-        InfoPanel.ShowPanel(Color.white,
+        InfoPanelManager.ShowPanel(Color.white,
             $"{match.MatchTitle}\n\n{GetAllContestantsInfo(match, contestant)}\n\n{Date.ToLocalTime():f}\n", () =>
             {
                 LoadImageAndDisplayPanel(match);
-                InfoPanel.Instance.AddButton("Close", InfoPanel.Instance.HidePanel);
+                InfoPanelManager.Instance.AddButton("Close", InfoPanelManager.Instance.HidePanel);
             });
     }
 
@@ -104,11 +104,11 @@ public class BetHistoryElement : MonoBehaviour
 
     private void LoadImageAndDisplayPanel(Match match)
     {
-        InfoPanel.Instance.SetImage(null);
+        InfoPanelManager.Instance.SetImage(null);
         TextureLoader.LoadTexture(this, match.ImageUrl, texture2D =>
         {
             if (texture2D != null)
-                InfoPanel.Instance.SetImage(texture2D);
+                InfoPanelManager.Instance.SetImage(texture2D);
             else
                 Debug.Log("Texture failed to load.");
         });

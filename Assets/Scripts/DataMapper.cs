@@ -29,7 +29,7 @@ public class DataMapper : MonoBehaviour
     {
         FirebaseGoogleLogin.OnLoginFinished += MapData;
         NetworkCheck.OnInternetEstablished += MapData;
-        NameChanger.onNameChanged += InitializeUserData;
+        NameChanger.OnNameChanged += InitializeUserData;
         OnMapDataFinished += () => CreateMatchViews(_availableMatches.ToList());
     }
 

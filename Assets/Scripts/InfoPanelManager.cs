@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class InfoPanel : MonoBehaviour
+public class InfoPanelManager : MonoBehaviour
 {
     [SerializeField] private GameObject panel;
     [SerializeField] private TextMeshProUGUI infoText;
@@ -14,7 +14,7 @@ public class InfoPanel : MonoBehaviour
     [SerializeField] private RawImage panelImage;
     public Transform createdElementsParent;
 
-    public static InfoPanel Instance;
+    public static InfoPanelManager Instance;
 
     private void Awake()
     {

@@ -126,12 +126,12 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void ShowProfilePanel()
     {
-        InfoPanel.ShowPanel(Color.white, callback: () =>
+        InfoPanelManager.ShowPanel(Color.white, callback: () =>
         {
-            Instantiate(nameChangerElement, InfoPanel.Instance.createdElementsParent);
-            InfoPanel.Instance.AddButton("Change photo", SavePhoto.PickPhoto, ColorHelper.PaleYellowString);
-            InfoPanel.Instance.AddButton("Sign out", OnSignOut, ColorHelper.HotPinkString);
-            InfoPanel.Instance.AddButton("Close", InfoPanel.Instance.HidePanel, ColorHelper.PaleYellowString);
+            Instantiate(nameChangerElement, InfoPanelManager.Instance.createdElementsParent);
+            InfoPanelManager.Instance.AddButton("Change photo", SavePhoto.PickPhoto, ColorHelper.PaleYellowString);
+            InfoPanelManager.Instance.AddButton("Sign out", OnSignOut, ColorHelper.HotPinkString);
+            InfoPanelManager.Instance.AddButton("Close", InfoPanelManager.Instance.HidePanel, ColorHelper.PaleYellowString);
         });
     }
 
@@ -186,7 +186,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         profileImage.texture = null;
 
         loginPanel.SetActive(true);
-        InfoPanel.Instance.HidePanel();
+        InfoPanelManager.Instance.HidePanel();
     }
 
     internal void OnAuthenticationFinished(Task<GoogleSignInUser> task)
