@@ -111,9 +111,9 @@ public class FirebaseGoogleLogin : MonoBehaviour
             profileImage.texture = readableTexture;
             UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
             {
-                MatchesRepository.UploadImage(readableTexture, $"{Guid.NewGuid()}.png").Then(imageUrl =>
+                ImageHelper.UploadImage(readableTexture, $"{Guid.NewGuid()}.png").Then(imageUrl =>
                 {
-                    MatchesRepository.DeleteImage(user.imageUrl).Finally(() =>
+                    ImageHelper.DeleteImage(user.imageUrl).Finally(() =>
                     {
                         user.imageUrl = imageUrl;
                         UserRepository.UpdateUserInfo(user)

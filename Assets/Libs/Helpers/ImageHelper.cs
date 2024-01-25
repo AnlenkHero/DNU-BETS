@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Proyecto26;
 using RSG;
 using UnityEngine;
@@ -29,7 +30,7 @@ namespace Libs.Helpers
                     Headers = headers
                 };
 
-                RestClient.Request(requestData).Then(response =>
+                RestClient.Request(requestData).Then(_ =>
                 {
                     GetDownloadURL(fileName).Then(resolve).Catch(error =>
                     {
@@ -39,14 +40,39 @@ namespace Libs.Helpers
             });
         }
 
+        public static IPromise<ResponseHelper> DeleteImage(string imageUrl)
+        {
+            return new Promise<ResponseHelper>((resolve, reject) =>
+            {
+                var uri = new Uri(imageUrl);
+                string fileName = System.Web.HttpUtility.UrlDecode(uri.Segments.Last());
+
+                string deleteEndpoint = $"{FirebaseStorageURL}/o/{fileName}";
+
+                RestClient.Request(new RequestHelper
+                    {
+                        Uri = deleteEndpoint,
+                        Method = "DELETE",
+                        Headers = new Dictionary<string, string>
+                        {
+                            { "Content-Type", "image/png" }
+                        },
+                    })
+                    .Then(resolve)
+                    .Catch(error => { reject(new Exception($"Failed to delete image: {error.Message}")); });
+            });
+        }
+
+
         private static Promise<string> GetDownloadURL(string fileName)
         {
             return new Promise<string>((resolve, reject) =>
             {
                 RestClient.Get($"{FirebaseStorageURL}/o/{fileName}").Then(response =>
                 {
-                    string downloadUrl = JsonUtility.FromJson<DownloadUrlResponse>(response.Text).downloadTokens;
-                    resolve(downloadUrl);
+                    string downloadToken = JsonUtility.FromJson<DownloadUrlResponse>(response.Text).downloadTokens;
+                    string completeUrl = $"{FirebaseStorageURL}/o/{fileName}?alt=media&token={downloadToken}";
+                    resolve(completeUrl);
                 }).Catch(error => { reject(new Exception($"Error retrieving download URL: {error.Message}")); });
             });
         }
