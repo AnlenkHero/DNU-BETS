@@ -40,7 +40,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void Awake()
     {
-        SavePhoto.FunctionOnPickedFileReturn += ChangePhoto;
+        GalleryFileManager.FunctionOnPickedFileReturn += ChangePhoto;
         profileImageButton.onClick.AddListener(ShowProfilePanel);
 
         //LogIn();
@@ -78,33 +78,10 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private void ChangePhoto(string path)
     {
-        Texture2D originalTexture = SavePhoto.GetTexture2DIOS(path);
-        
-        int maxWidth = 400;
-        int maxHeight = 400;
+        Texture2D originalTexture = GalleryFileManager.GetTexture2DIOS(path);
+        Texture2D resizedTexture = ImageProcessing.ResizeAndCompressTexture(originalTexture, 400, 400, 75);
 
-        float originalWidth = originalTexture.width;
-        float originalHeight = originalTexture.height;
-        float aspectRatio = originalWidth / originalHeight;
-        
-        int newWidth, newHeight;
-        if (originalWidth > originalHeight)
-        {
-            newWidth = maxWidth;
-            newHeight = Mathf.RoundToInt(maxWidth / aspectRatio);
-        }
-        else
-        {
-            newHeight = maxHeight;
-            newWidth = Mathf.RoundToInt(maxHeight * aspectRatio);
-        }
-
-        Texture2D resizedTexture = TextureScale.Bilinear(originalTexture, newWidth, newHeight);
-        byte[] compressedBytes = resizedTexture.EncodeToJPG(75);
-        Texture2D texture2D = new Texture2D(newWidth, newHeight);
-        texture2D.LoadImage(compressedBytes);
-
-        ImageCropperDemo.Crop(texture2D, (croppedTexture) =>
+        ImageCropperNamespace.ImageCropper.Crop(resizedTexture, (croppedTexture) =>
         {
             Texture2D readableTexture = croppedTexture;
 
@@ -129,7 +106,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         InfoPanelManager.ShowPanel(Color.white, callback: () =>
         {
             Instantiate(nameChangerElement, InfoPanelManager.Instance.createdElementsParent);
-            InfoPanelManager.Instance.AddButton("Change photo", SavePhoto.PickPhoto, ColorHelper.PaleYellowString);
+            InfoPanelManager.Instance.AddButton("Change photo", GalleryFileManager.PickPhoto, ColorHelper.PaleYellowString);
             InfoPanelManager.Instance.AddButton("Sign out", OnSignOut, ColorHelper.HotPinkString);
             InfoPanelManager.Instance.AddButton("Close", InfoPanelManager.Instance.HidePanel, ColorHelper.PaleYellowString);
         });
