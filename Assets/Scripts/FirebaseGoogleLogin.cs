@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Firebase;
 using Firebase.Auth;
 using Google;
-using ImageCropperNamespace;
 using Libs.Helpers;
 using Libs.Models;
 using Libs.Models.RequestModels;
@@ -43,8 +42,8 @@ public class FirebaseGoogleLogin : MonoBehaviour
         GalleryFileManager.FunctionOnPickedFileReturn += ChangePhoto;
         profileImageButton.onClick.AddListener(ShowProfilePanel);
 
-        //LogIn();
-        DebugLogIn();
+        LogIn();
+        //DebugLogIn();
     }
 
     private static void DebugLogIn()
@@ -79,7 +78,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
     private void ChangePhoto(string path)
     {
         Texture2D originalTexture = GalleryFileManager.GetTexture2DIOS(path);
-        Texture2D resizedTexture = ImageProcessing.ResizeAndCompressTexture(originalTexture, 400, 400, 75);
+        Texture2D resizedTexture = ImageProcessing.ResizeAndCompressTexture(originalTexture, 600, 600, 100);
 
         ImageCropperNamespace.ImageCropper.Crop(resizedTexture, (croppedTexture) =>
         {
