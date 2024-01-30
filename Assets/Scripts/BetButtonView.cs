@@ -1,4 +1,5 @@
 using System;
+using Libs.Helpers;
 using Libs.Models;
 using TMPro;
 using UnityEngine;
@@ -32,7 +33,7 @@ public class BetButtonView : MonoBehaviour
 
     public void SetData(Contestant contestant, string matchId, MatchView matchView)
     {
-        buttonText.text = $"{contestant.Name} {contestant.Coefficient}";
+        buttonText.text = $"{contestant.Name} \n<color={ColorHelper.LightGreenString}>{contestant.Coefficient}</color>";
         Contestant = contestant;
         betButton.onClick.AddListener(() => RaiseEvent(contestant, matchId, matchView));
     }
