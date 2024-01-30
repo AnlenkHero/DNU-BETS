@@ -36,7 +36,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 75}
-  m_SizeDelta: {x: 540, y: 230}
+  m_SizeDelta: {x: 550, y: 230}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &282405478767692022
 CanvasRenderer:
@@ -299,7 +299,7 @@ GameObject:
   - component: {fileID: 5593283941200874467}
   - component: {fileID: 6415241463025678732}
   m_Layer: 5
-  m_Name: Contender Button prefab
+  m_Name: Bet button view prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -348,6 +348,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buttonText: {fileID: 3062196083338041352}
   betButton: {fileID: 6421982639556877944}
+  pressedButtonBehaviour: {fileID: 7038188942449887081}
 --- !u!1 &7142844814595259368
 GameObject:
   m_ObjectHideFlags: 0

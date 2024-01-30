@@ -16,6 +16,10 @@ namespace Libs.Helpers
         public static readonly Color32 Orange = new(0xE3,0xA0,0x18, 0xFF);
         public static readonly string OrangeString = ToHexString(Orange);
         
+        public static readonly Color32 PastelGray = new(0xB6, 0xA8, 0xA8, 0xFF);
+        public static readonly string PastelGrayString = ToHexString(PastelGray);
+
+        
         public static string ToHexString(Color32 color)
         {
             return $"#{color.r:X2}{color.g:X2}{color.b:X2}";

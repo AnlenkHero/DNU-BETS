@@ -24,7 +24,7 @@ public class BetButtonView : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI buttonText;
     [SerializeField] private Button betButton;
-
+    [SerializeField] private PressedButtonBehaviour pressedButtonBehaviour;
     public Contestant Contestant { get; private set; }
 
     public delegate void BetButtonEventHandler(object sender, BetButtonEventArgs args);
@@ -45,11 +45,13 @@ public class BetButtonView : MonoBehaviour
 
     public void Hide()
     {
+        pressedButtonBehaviour.DisableButton();
         betButton.interactable = false;
     }
 
     public void Show()
     {
+        pressedButtonBehaviour.EnableButton();
         betButton.interactable = true;
     }
 }
