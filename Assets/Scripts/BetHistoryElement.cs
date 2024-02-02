@@ -15,6 +15,7 @@ public class BetHistoryElement : MonoBehaviour
     [SerializeField] private TextMeshProUGUI isWinTMP;
     [SerializeField] private Button betHistoryButton;
     public DateTime Date;
+    private Texture2D _betPoster;
 
     public void SetData(BetsProcessor.ProcessedBetDetail processedBetDetail)
     {
@@ -104,11 +105,16 @@ public class BetHistoryElement : MonoBehaviour
 
     private void LoadImageAndDisplayPanel(Match match)
     {
-        InfoPanelManager.Instance.SetImage(null);
+        InfoPanelManager.Instance.SetImage(_betPoster);
+        if(_betPoster) return;
+        
         TextureLoader.LoadTexture(this, match.ImageUrl, texture2D =>
         {
             if (texture2D != null)
+            {
+                _betPoster = texture2D;
                 InfoPanelManager.Instance.SetImage(texture2D);
+            }
             else
                 Debug.Log("Texture failed to load.");
         });
