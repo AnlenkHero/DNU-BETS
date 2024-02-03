@@ -42,8 +42,8 @@ public class FirebaseGoogleLogin : MonoBehaviour
         GalleryFileManager.FunctionOnPickedFileReturn += ChangePhoto;
         profileImageButton.onClick.AddListener(ShowProfilePanel);
 
-        //LogIn();
-        DebugLogIn();
+        LogIn();
+        //DebugLogIn();
     }
 
     private static void DebugLogIn()

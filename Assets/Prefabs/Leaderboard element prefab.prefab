@@ -108,10 +108,10 @@ RectTransform:
   m_Father: {fileID: 7041050817452481338}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 384, y: 200}
-  m_Pivot: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 200}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &225758096355895391
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -142,8 +142,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Name
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: cd3a2608116b5e84f8ea768c156e9419, type: 2}
-  m_sharedMaterial: {fileID: 8659373926764162716, guid: cd3a2608116b5e84f8ea768c156e9419,
+  m_fontAsset: {fileID: 11400000, guid: 86cb65f43a7ded946985e1bf52457d62, type: 2}
+  m_sharedMaterial: {fileID: 808005567850480346, guid: 86cb65f43a7ded946985e1bf52457d62,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -168,15 +168,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 123.65
+  m_fontSize: 166.65
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 371.7
   m_fontStyle: 1
-  m_HorizontalAlignment: 32
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -410,7 +410,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7369184510538947683}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.00012661709}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -418,8 +418,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 205.97998, y: 108}
-  m_SizeDelta: {x: -411.97, y: -216}
+  m_AnchoredPosition: {x: 250, y: 108}
+  m_SizeDelta: {x: -500, y: -216}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1109595797148867060
 CanvasRenderer:
@@ -451,8 +451,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b03fdd54c532a4a4cb1ad89e1d2c0ca0, type: 2}
-  m_sharedMaterial: {fileID: 8659373926764162716, guid: b03fdd54c532a4a4cb1ad89e1d2c0ca0,
+  m_fontAsset: {fileID: 11400000, guid: 86cb65f43a7ded946985e1bf52457d62, type: 2}
+  m_sharedMaterial: {fileID: 808005567850480346, guid: 86cb65f43a7ded946985e1bf52457d62,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -477,7 +477,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 326.8
+  m_fontSize: 320
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

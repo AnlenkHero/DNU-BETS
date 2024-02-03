@@ -6,7 +6,7 @@ using UnityEngine;
 public class MoneyView : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI moneyText;
-
+    private double currentAmount;
 
     public double Balance
     {
@@ -26,17 +26,18 @@ public class MoneyView : MonoBehaviour
 
     private IEnumerator UpdateMoneyTextAsync(double targetAmount)
     {
-        double currentAmount = double.Parse(moneyText.text);
         double step = (targetAmount - currentAmount) / 10; 
 
         for (int i = 0; i < 10; i++)
         {
             currentAmount += step;
-            moneyText.text = Math.Round(currentAmount, 2).ToString();
+            moneyText.text = $"{Math.Round(currentAmount, 2).ToString()}$";
             yield return new WaitForSeconds(0.05f); 
         }
 
-        moneyText.text = Math.Round(targetAmount, 2).ToString();
+        currentAmount = targetAmount;
+        moneyText.text = $"{Math.Round(targetAmount, 2).ToString()}$";
     }
+
     
 }
