@@ -62,7 +62,12 @@ public class LeaderboardElement : MonoBehaviour
 
                     InfoPanelManager.ShowPanel(Color.white, info);
                 }))
-                .Catch(exception => Debug.LogError(exception.Message));
+                .Catch(exception =>
+                {
+                    InfoPanelManager.ShowPanel(ColorHelper.HotPink,
+                        $"<color=#FFFFFF>{user.userName}</color>\n\nUser has no bets or an error occurred.");
+                    Debug.LogError(exception.Message);
+                });
         }
     }
 

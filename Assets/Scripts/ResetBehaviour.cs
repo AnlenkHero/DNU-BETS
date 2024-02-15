@@ -34,7 +34,7 @@ public class ResetBehaviour : MonoBehaviour
             else
             {
                 InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                    $"You have active bets or your balance greater or equal than 300<color={ColorHelper.LightGreenString}>$</color>");
+                    $"You have active bets or your balance greater or equal 300<color={ColorHelper.LightGreenString}>$</color>");
             }
         }).Catch(_ =>
         {

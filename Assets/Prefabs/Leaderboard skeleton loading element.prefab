@@ -91,7 +91,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8575acf5ed15faa41b3bf5a6098ffef1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  background: {fileID: 8272862633107217189}
+  background:
+  - {fileID: 8272862633107217189}
   imagesArray:
   - {fileID: 6903836644657902001}
   - {fileID: 172134068145702915}
