@@ -10907,7 +10907,7 @@ MonoBehaviour:
   m_fontSizeMax: 298.8
   m_fontStyle: 1
   m_HorizontalAlignment: 32
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: -6
   m_wordSpacing: 0
@@ -12966,7 +12966,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -13348,7 +13348,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -13604,6 +13604,9 @@ MonoBehaviour:
   scrollRect: {fileID: 8662977454327231192}
   skeletonLoading: {fileID: 2067620271}
   betHistoryErrorTMP: {fileID: 1362216296}
+  winParticle: {fileID: 7009631999783902621, guid: 9341cb9b67979a44fbcb2abab63b1890,
+    type: 3}
+  mainCanvas: {fileID: 1810181024}
 --- !u!4 &2069917444
 Transform:
   m_ObjectHideFlags: 0

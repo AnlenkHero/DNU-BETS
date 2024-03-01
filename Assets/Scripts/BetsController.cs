@@ -80,7 +80,9 @@ public class BetsController : MonoBehaviour
                         BetCache.Bets = new List<Bet> { newBet };
                     else
                         BetCache.Bets.Add(newBet);
-
+                    
+                    ActiveBetsCache.AddActiveBetId(betId);
+                    
                     OnBetPosted?.Invoke();
                 }).Catch(exception =>
                 {

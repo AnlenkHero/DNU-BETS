@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Libs.Helpers;
 using Libs.Models;
 using TMPro;
@@ -14,6 +15,8 @@ public class BetsHistory : MonoBehaviour
     [SerializeField] private ScrollRect scrollRect;
     [SerializeField] private GameObject skeletonLoading;
     [SerializeField] private TextMeshProUGUI betHistoryErrorTMP;
+    [SerializeField] private ParticleSystem winParticle;
+    [SerializeField] private Transform mainCanvas;
     private bool _isBetsHistoryRefreshing;
 
 
@@ -49,6 +52,8 @@ public class BetsHistory : MonoBehaviour
         var betHistoryElements = new List<BetHistoryElement>();
         BetsProcessor.ProcessBets(bets, matches, stats =>
         {
+            CheckForInactiveWonBets(stats.ProcessedBets);
+
             foreach (var processedBet in stats.ProcessedBets)
             {
                 var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
@@ -57,7 +62,7 @@ public class BetsHistory : MonoBehaviour
 
                 betHistoryElements.Add(tempBetHistoryElement);
             }
-            
+
             SortBetsHistory(betHistoryElements);
 
             betsHistoryTotalInfo.SetData(bets.Count, stats.BetsWon, stats.BetsLost, stats.MoneyGained, stats.MoneyLost,
@@ -104,5 +109,29 @@ public class BetsHistory : MonoBehaviour
         }
 
         _isBetsHistoryRefreshing = isLoading;
+    }
+
+    private void CheckForInactiveWonBets(List<BetsProcessor.ProcessedBetDetail> bets)
+    {
+        double moneyGainedOrLost = 0;
+        bool betsBecameInactive = false;
+
+        List<string> betIds = ActiveBetsCache.GetAllActiveBetIds();
+        foreach (string id in betIds)
+        {
+            var betDetail = bets.FirstOrDefault(b => b.Bet.BetId == id);
+            if (betDetail.Bet.IsActive) continue;
+
+            betsBecameInactive = true;
+            moneyGainedOrLost += betDetail.MoneyLostOrGained;
+            ActiveBetsCache.RemoveActiveBetId(id);
+        }
+
+        if (betsBecameInactive && moneyGainedOrLost > 0)
+        {
+            InfoPanelManager.ShowPanel(ColorHelper.LightGreen,
+                $"You won {moneyGainedOrLost.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}$");
+            Instantiate(winParticle, mainCanvas);
+        }
     }
 }

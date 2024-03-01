@@ -11,13 +11,15 @@ public class BetsProcessor
         public readonly Match Match;
         public readonly DateTime DateTime;
         public readonly bool IsWinner;
+        public readonly double MoneyLostOrGained;
 
-        public ProcessedBetDetail(Bet bet, Match match, DateTime dateTime, bool isWinner)
+        public ProcessedBetDetail(Bet bet, Match match, DateTime dateTime, bool isWinner, double moneyLostOrGained)
         {
             Bet = bet;
             Match = match;
             DateTime = dateTime;
             IsWinner = isWinner;
+            MoneyLostOrGained = moneyLostOrGained;
         }
     }
     
@@ -44,6 +46,7 @@ public class BetsProcessor
 
         foreach (var bet in bets)
         {
+            double moneyLostOrGained = 0;
             Match match = matches.Find(x => x.Id == bet.MatchId);
             if (match == null)
             {
@@ -56,23 +59,24 @@ public class BetsProcessor
                 CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue)
                 ? dateValue
                 : DateTime.Now;
-
-            stats.ProcessedBets.Add(new ProcessedBetDetail(bet,match,dateTime, contestant is { Winner: true }));
-
+            
             if (match.IsMatchCanceled)
             {
                 stats.MatchesCanceled++;
             }
             else if (contestant != null && contestant.Winner)
             {
+                moneyLostOrGained = contestant.Coefficient * bet.BetAmount - bet.BetAmount;
                 stats.BetsWon++;
-                stats.MoneyGained += contestant.Coefficient * bet.BetAmount - bet.BetAmount;
+                stats.MoneyGained += moneyLostOrGained;
             }
             else if (!bet.IsActive && !match.IsMatchCanceled)
             {
+                moneyLostOrGained = -bet.BetAmount; 
+                stats.MoneyLost += -moneyLostOrGained; 
                 stats.BetsLost++;
-                stats.MoneyLost -= bet.BetAmount;
             }
+            stats.ProcessedBets.Add(new ProcessedBetDetail(bet, match, dateTime, contestant is { Winner: true }, moneyLostOrGained));
         }
 
         onProcessed?.Invoke(stats);

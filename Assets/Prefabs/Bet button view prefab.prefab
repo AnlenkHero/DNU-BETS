@@ -184,6 +184,36 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5610641868795538542, guid: de305246198ef3c4a82608ce0034257b,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0.87058824
+      objectReference: {fileID: 0}
+    - target: {fileID: 5610641868795538542, guid: de305246198ef3c4a82608ce0034257b,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 0.87058824
+      objectReference: {fileID: 0}
+    - target: {fileID: 5610641868795538542, guid: de305246198ef3c4a82608ce0034257b,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.87058824
+      objectReference: {fileID: 0}
+    - target: {fileID: 6464391575992468310, guid: de305246198ef3c4a82608ce0034257b,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0.87058824
+      objectReference: {fileID: 0}
+    - target: {fileID: 6464391575992468310, guid: de305246198ef3c4a82608ce0034257b,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 0.87058824
+      objectReference: {fileID: 0}
+    - target: {fileID: 6464391575992468310, guid: de305246198ef3c4a82608ce0034257b,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.87058824
+      objectReference: {fileID: 0}
     - target: {fileID: 8844589900104492638, guid: de305246198ef3c4a82608ce0034257b,
         type: 3}
       propertyPath: m_SizeDelta.x
