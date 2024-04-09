@@ -3,26 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using Libs.Models;
 
-public class BetsProcessor
+public partial class BetsProcessor
 {
-    public struct ProcessedBetDetail
-    {
-        public readonly Bet Bet;
-        public readonly Match Match;
-        public readonly DateTime DateTime;
-        public readonly bool IsWinner;
-        public readonly double MoneyLostOrGained;
-
-        public ProcessedBetDetail(Bet bet, Match match, DateTime dateTime, bool isWinner, double moneyLostOrGained)
-        {
-            Bet = bet;
-            Match = match;
-            DateTime = dateTime;
-            IsWinner = isWinner;
-            MoneyLostOrGained = moneyLostOrGained;
-        }
-    }
-    
     public struct BetStats
     {
         public int BetsWon;

@@ -28,7 +28,9 @@ public static class ActiveBetsCache
             return new List<int>();
         }
         
-        return betIdsString.Split(BetIdsDelimiter).Cast<int>();
+        return betIdsString.Split(BetIdsDelimiter)
+            .Select(x => int.TryParse(x, out int id) ? id : -1)
+            .Where(x => x > 0);
     }
     
     public static void RemoveActiveBetId(int betId)

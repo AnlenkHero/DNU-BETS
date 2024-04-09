@@ -25,16 +25,18 @@ public class DataMapper : MonoBehaviour
     public static event Action OnMapDataStarted;
     public static event Action OnMapDataFinished;
 
-    private void OnEnable()
+    private void Awake()
     {
         FirebaseGoogleLogin.OnLoginFinished += MapData;
         NameChanger.OnNameChanged += InitializeUserData;
-        OnMapDataFinished += () => CreateMatchViews(_availableMatches);
+        OnMapDataFinished += () => 
+        refreshButton.onClick.AddListener(MapData);
     }
 
-    private void Awake()
+    private void OnDisable()
     {
-        refreshButton.onClick.AddListener(MapData);
+        FirebaseGoogleLogin.OnLoginFinished -= MapData;
+        NameChanger.OnNameChanged -= InitializeUserData;
     }
 
     private void Update()
@@ -67,6 +69,7 @@ public class DataMapper : MonoBehaviour
             {
                 OnMapDataFinished?.Invoke();
                 _isDataMappingRefreshing = false;
+                CreateMatchViews(_availableMatches);
             });
     }
 

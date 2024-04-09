@@ -17,7 +17,7 @@ public class BetHistoryElement : MonoBehaviour
     public DateTime Date;
     private Texture2D _betPoster;
 
-    public void SetData(BetsProcessor.ProcessedBetDetail processedBetDetail)
+    public void SetData(ProcessedBetDetail processedBetDetail)
     {
         var contestant = processedBetDetail.Match.Contestants.Find(c => c.Id == processedBetDetail.Bet.ContestantId);
 

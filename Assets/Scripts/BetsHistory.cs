@@ -110,7 +110,7 @@ public class BetsHistory : MonoBehaviour
         _isBetsHistoryRefreshing = isLoading;
     }
 
-    private void CheckForInactiveWonBets(List<BetsProcessor.ProcessedBetDetail> bets)
+    private void CheckForInactiveWonBets(List<ProcessedBetDetail> bets)
     {
         double moneyGainedOrLost = 0;
         bool betsBecameInactive = false;
@@ -120,7 +120,11 @@ public class BetsHistory : MonoBehaviour
         foreach (int id in betIds)
         {
             var betDetail = bets.FirstOrDefault(b => b.Bet.BetId == id);
-            if (betDetail.Bet.IsActive) continue;
+            
+            if(betDetail?.Bet == null || betDetail?.Bet?.IsActive == true)
+            {
+                continue;
+            }
 
             betsBecameInactive = true;
             moneyGainedOrLost += betDetail.MoneyLostOrGained;
