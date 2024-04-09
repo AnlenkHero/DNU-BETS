@@ -8,11 +8,11 @@ using UnityEngine.UI;
 public class BetButtonEventArgs : EventArgs
 {
     public Contestant Contestant { get; set; }
-    public string MatchId { get; set; }
+    public int MatchId { get; set; }
 
     public MatchView MatchViewParent;
 
-    public BetButtonEventArgs(Contestant contestant, string matchId, MatchView matchView)
+    public BetButtonEventArgs(Contestant contestant, int matchId, MatchView matchView)
     {
         Contestant = contestant;
         MatchId = matchId;
@@ -31,14 +31,14 @@ public class BetButtonView : MonoBehaviour
 
     public static event BetButtonEventHandler OnButtonClick;
 
-    public void SetData(Contestant contestant, string matchId, MatchView matchView)
+    public void SetData(Contestant contestant, int matchId, MatchView matchView)
     {
         buttonText.text = $"{contestant.Name} \n<color={ColorHelper.LightGreenString}>{contestant.Coefficient}</color>";
         Contestant = contestant;
         betButton.onClick.AddListener(() => RaiseEvent(contestant, matchId, matchView));
     }
 
-    private void RaiseEvent(Contestant contestant, string matchId, MatchView matchView)
+    private void RaiseEvent(Contestant contestant, int matchId, MatchView matchView)
     {
         OnButtonClick?.Invoke(this, new BetButtonEventArgs(contestant, matchId, matchView));
     }

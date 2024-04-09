@@ -1,41 +1,44 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public static class ActiveBetsCache
 {
-    public static void AddActiveBetId(string betId)
+    private const string ActiveBetsKey = "ActiveBets";
+    private const char BetIdsDelimiter = ',';
+    
+    public static void AddActiveBetId(int betId)
     {
-        string existingBets = PlayerPrefs.GetString("ActiveBets", "");
+        string existingBets = PlayerPrefs.GetString(ActiveBetsKey, string.Empty);
         
         if (!string.IsNullOrEmpty(existingBets))
         {
-            existingBets += ",";
+            existingBets += BetIdsDelimiter;
         }
         existingBets += betId;
         
         PlayerPrefs.SetString("ActiveBets", existingBets);
         PlayerPrefs.Save();
     }
-    public static List<string> GetAllActiveBetIds()
+    public static IEnumerable<int> GetAllActiveBetIds()
     {
-        string betIdsString = PlayerPrefs.GetString("ActiveBets", "");
-        
+        string betIdsString = PlayerPrefs.GetString(ActiveBetsKey, string.Empty); 
         if (string.IsNullOrEmpty(betIdsString))
         {
-            return new List<string>();
+            return new List<int>();
         }
         
-        string[] betIds = betIdsString.Split(',');
-        return new List<string>(betIds);
+        return betIdsString.Split(BetIdsDelimiter).Cast<int>();
     }
-    public static void RemoveActiveBetId(string betId)
+    
+    public static void RemoveActiveBetId(int betId)
     {
-        List<string> betIds = GetAllActiveBetIds();
-        
+        List<int> betIds = GetAllActiveBetIds().ToList();
+
         if (betIds.Remove(betId))
         {
-            string updatedBetIdsString = string.Join(",", betIds);
-            PlayerPrefs.SetString("ActiveBets", updatedBetIdsString);
+            string updatedBetIdsString = string.Join(BetIdsDelimiter, betIds);
+            PlayerPrefs.SetString(ActiveBetsKey, updatedBetIdsString);
             PlayerPrefs.Save();
         }
     }

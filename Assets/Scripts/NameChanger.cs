@@ -24,7 +24,7 @@ public class NameChanger : MonoBehaviour
         }
         else
         {
-            UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
+            UserRepository.GetUserById(UserData.UserId).Then(user =>
             {
                 user.userName = nameInputFieldField.text;
                 UserRepository.UpdateUserInfo(user).Then(_ =>

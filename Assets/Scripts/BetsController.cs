@@ -34,7 +34,7 @@ public class BetsController : MonoBehaviour
             betButtonView.Hide();
         }
 
-        var newBetRequest = new BetRequest()
+        var newBetRequest = new BetRequest
         {
             BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId,
             MatchId = _betButtonEventArgs.MatchId, IsActive = true
@@ -48,26 +48,7 @@ public class BetsController : MonoBehaviour
                     InfoPanelManager.ShowPanel(ColorHelper.LightGreen,
                         $"Bet has been successfully made. \nContestant name: {_betButtonEventArgs.Contestant.Name} \nBet amount: {betAmount}$ \nCoefficient: {_betButtonEventArgs.Contestant.Coefficient}");
 
-                    var tempBalance = moneyView.Balance - betAmount;
-
-                    UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
-                    {
-                        user.balance = tempBalance;
-
-                        UserRepository.UpdateUserInfo(user).Then(helper =>
-                        {
-                            moneyView.Balance -= betAmount;
-                            Debug.Log("success money update");
-                        }).Catch(exception =>
-                        {
-                            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                                $"Error to update balance. {exception.Message}");
-                        });
-                    }).Catch(exception =>
-                    {
-                        InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                            $"Error to get user by id. {exception.Message}");
-                    });
+                    moneyView.Balance =- betAmount;
 
                     Bet newBet = new()
                     {
@@ -77,9 +58,13 @@ public class BetsController : MonoBehaviour
                     };
 
                     if (BetCache.Bets == null)
+                    {
                         BetCache.Bets = new List<Bet> { newBet };
+                    }
                     else
+                    {
                         BetCache.Bets.Add(newBet);
+                    }
                     
                     ActiveBetsCache.AddActiveBetId(betId);
                     

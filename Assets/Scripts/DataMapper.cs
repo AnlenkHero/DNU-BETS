@@ -18,9 +18,9 @@ public class DataMapper : MonoBehaviour
     [SerializeField] private GameObject noMatchesPanel;
     [SerializeField] private Button refreshButton;
     [SerializeField] private GameObject dataMapperSkeletonLoading;
-    private IEnumerable<Match> _availableMatches;
+    private List<Match> _availableMatches;
     private float _cooldownTimer;
-    private readonly float _cooldownPeriod = 3f;
+    private const float CooldownPeriod = 3f;
     private bool _isDataMappingRefreshing;
     public static event Action OnMapDataStarted;
     public static event Action OnMapDataFinished;
@@ -28,9 +28,8 @@ public class DataMapper : MonoBehaviour
     private void OnEnable()
     {
         FirebaseGoogleLogin.OnLoginFinished += MapData;
-        NetworkCheck.OnInternetEstablished += MapData;
         NameChanger.OnNameChanged += InitializeUserData;
-        OnMapDataFinished += () => CreateMatchViews(_availableMatches.ToList());
+        OnMapDataFinished += () => CreateMatchViews(_availableMatches);
     }
 
     private void Awake()
@@ -48,7 +47,7 @@ public class DataMapper : MonoBehaviour
     {
         if (!(_cooldownTimer <= 0) || _isDataMappingRefreshing) return;
 
-        _cooldownTimer = _cooldownPeriod;
+        _cooldownTimer = CooldownPeriod;
         _isDataMappingRefreshing = true;
         
         OnMapDataStarted?.Invoke();
@@ -60,7 +59,7 @@ public class DataMapper : MonoBehaviour
         BetCache.Bets = null;
         MatchCache.Matches = null;
 
-        var promises = new List<IPromise> { WrapGetMatches(), WrapGetAllBetsByUserId(UserData.UserId) };
+        var promises = new List<IPromise> { GetMatches(), GetAllBetsByUserId(UserData.UserId) };
 
         Promise.All(promises)
             .Catch(HandleDataMappingError)
@@ -103,14 +102,14 @@ public class DataMapper : MonoBehaviour
     }
 
 
-    private IPromise WrapGetMatches()
+    private IPromise GetMatches()
     {
         var promise = new Promise();
 
-        MatchesRepository.GetAllMatches().Then(list =>
+        MatchesRepository.GetAllMatches(available: true).Then(list =>
             {
                 MatchCache.Matches = list;
-                _availableMatches = list.Where(match => match.IsBettingAvailable);
+                _availableMatches = list;
                 promise.Resolve();
             })
             .Catch(exception => promise.Reject(exception));
@@ -118,11 +117,11 @@ public class DataMapper : MonoBehaviour
         return promise;
     }
 
-    private IPromise WrapGetAllBetsByUserId(string userId)
+    private IPromise GetAllBetsByUserId(int userId)
     {
         var promise = new Promise();
 
-        BetsRepository.GetAllBetsByUserId(userId)
+        BetsRepository.GetAllBets(userId)
             .Then(list =>
             {
                 BetCache.Bets = list;

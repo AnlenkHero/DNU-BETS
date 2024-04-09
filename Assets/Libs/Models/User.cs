@@ -6,8 +6,8 @@ namespace Libs.Models
     [System.Serializable]
     public class User
     {
-        public string id;
-        public string userId;
+        public int id;
+        public string token;
         public string userName;
         public double balance;
         public string imageUrl;

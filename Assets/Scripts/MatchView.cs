@@ -32,13 +32,13 @@ public class MatchView : MonoBehaviour
         title.text = match.MatchTitle;
         buttonViews = new List<BetButtonView>();
         
-        bool hasBets = BetCache.Bets?.Any(x => x.MatchId == match.Id)==true;
+        bool hasBets = BetCache.Bets?.Any(x => x.MatchId == match.Id) == true;
         
         
-        foreach (var contender in match.Contestants)
+        foreach (var contestant in match.Contestants)
         {
             var button = Instantiate(buttonPrefab, buttonParent);
-            button.SetData(contender, match.Id,this);
+            button.SetData(contestant, match.Id,this);
             
             if (hasBets)
             {

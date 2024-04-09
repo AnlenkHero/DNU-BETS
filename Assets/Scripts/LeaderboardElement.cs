@@ -52,7 +52,7 @@ public class LeaderboardElement : MonoBehaviour
     {
         if (matches.Count > 0)
         {
-            BetsRepository.GetAllBetsByUserId(user.userId)
+            BetsRepository.GetAllBets(user.id)
                 .Then(bets => BetsProcessor.ProcessBets(bets, matches, stats =>
                 {
                     var betStats = CalculateStats(bets.Count, stats);

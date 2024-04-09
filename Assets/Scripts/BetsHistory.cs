@@ -46,7 +46,6 @@ public class BetsHistory : MonoBehaviour
         ProcessBets(BetCache.Bets, MatchCache.Matches);
     }
 
-
     private void ProcessBets(List<Bet> bets, List<Match> matches)
     {
         var betHistoryElements = new List<BetHistoryElement>();
@@ -116,8 +115,9 @@ public class BetsHistory : MonoBehaviour
         double moneyGainedOrLost = 0;
         bool betsBecameInactive = false;
 
-        List<string> betIds = ActiveBetsCache.GetAllActiveBetIds();
-        foreach (string id in betIds)
+        IEnumerable<int> betIds = ActiveBetsCache.GetAllActiveBetIds();
+        
+        foreach (int id in betIds)
         {
             var betDetail = bets.FirstOrDefault(b => b.Bet.BetId == id);
             if (betDetail.Bet.IsActive) continue;

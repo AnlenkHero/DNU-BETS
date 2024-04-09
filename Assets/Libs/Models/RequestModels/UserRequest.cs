@@ -5,7 +5,7 @@ namespace Libs.Models.RequestModels
     [System.Serializable]
     public class UserRequest
     {
-        public string userId;
+        public string token;
         public string userName;
         public double balance;
         public string imageUrl;

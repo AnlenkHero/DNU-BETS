@@ -8,8 +8,8 @@ namespace Libs.Models.RequestModels
     {
         public string ImageUrl;
         public string MatchTitle;
-        public List<ContestantRequest> Contestants;
-        public string FinishedDateUtc;
+        public List<Contestant> Contestants;
+        public DateTime? FinishedDateUtc;
         public bool IsBettingAvailable;
         public bool IsMatchCanceled;
     }

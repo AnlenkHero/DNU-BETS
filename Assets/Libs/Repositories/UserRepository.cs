@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Libs.Config;
+using Libs.Helpers;
 using Libs.Models;
 using Libs.Models.RequestModels;
 using Newtonsoft.Json;
@@ -11,63 +13,78 @@ namespace Libs.Repositories
 {
     public static class UserRepository
     {
-        private const string FirebaseDbUrl = "https://wwe-bets-default-rtdb.europe-west1.firebasedatabase.app/";
-
-        public static Promise<User> GetUserByUserId(string userId)
+        private static readonly string BaseUrl = $"{ConfigManager.Settings.ApiSettings.Url}/api/user";
+         
+        public static Promise<User> GetUserByToken(string token)
         {
             return new Promise<User>((resolve, reject) =>
             {
-                string queryUrl = $"{FirebaseDbUrl}users.json?orderBy=\"userId\"&equalTo=\"{userId}\"";
+                string url = $"{BaseUrl}/by-token/{token}";
 
-                RestClient.Get(queryUrl).Then(response =>
+                RestClient.Get(url).Then(response =>
                 {
-                    var rawUsers =
-                        JsonConvert.DeserializeObject<Dictionary<string, UserRequest>>(response.Text);
-                    if (rawUsers == null || !rawUsers.Any())
-                    {
-                        reject(new Exception("User not found for provided UserID"));
-                        return;
-                    }
-
-                    var firstUserKey = rawUsers.Keys.First();
-                    var rawUser = rawUsers[firstUserKey];
-
-                    User user = new User
-                    {
-                        id = firstUserKey,
-                        userId = rawUser.userId,
-                        userName = rawUser.userName,
-                        balance = rawUser.balance,
-                        imageUrl = rawUser.imageUrl,
-                        buffPurchase = rawUser.buffPurchase
-                    };
-
+                    User user = string.IsNullOrWhiteSpace(response.Text) ? null : JsonConvert.DeserializeObject<User>(response.Text);
+                    
                     resolve(user);
-                }).Catch(error => { reject(new Exception($"Error retrieving user by UserID: {error.Message}")); });
+                }).Catch(exception =>
+                {
+                    var error = exception as RequestException;
+                    
+                    if (error?.StatusCode != StatusCodes.NotFoundStatusCode)
+                    {
+                        resolve(null);
+                    }
+                    
+                    reject(new Exception($"Error retrieving user by Token: {exception.Message}")); 
+                });
             });
         }
 
-        public static IPromise<string> SaveUser(UserRequest user)
+        public static Promise<User> GetUserById(int id)
         {
-            var promise = new Promise<string>();
+            return new Promise<User>((resolve, reject) =>
+            {
+                string url = $"{BaseUrl}/{id}";
 
-            if (string.IsNullOrEmpty(user.userId) || string.IsNullOrEmpty(user.userName))
+                RestClient.Get(url).Then(response =>
+                {
+                    User user = string.IsNullOrWhiteSpace(response.Text) ? null : JsonConvert.DeserializeObject<User>(response.Text);
+                    
+                    resolve(user);
+                }).Catch(exception =>
+                {
+                    var error = exception as RequestException;
+                    
+                    if (error?.StatusCode != StatusCodes.NotFoundStatusCode)
+                    {
+                        resolve(null);
+                    }
+                    
+                    reject(new Exception($"Error retrieving user by Id: {exception.Message}")); 
+                });
+            });
+        }
+        public static IPromise<int> SaveUser(UserRequest user)
+        {
+            var promise = new Promise<int>();
+
+            if (string.IsNullOrEmpty(user.token) || string.IsNullOrEmpty(user.userName))
             {
                 promise.Reject(new Exception("UserID or UserName is null or empty"));
                 return promise;
             }
 
-            RestClient.Post($"{FirebaseDbUrl}users.json", user).Then(response =>
+            RestClient.Post(BaseUrl, user).Then(response =>
             {
-                var jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response.Text);
+                var jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, int>>(response.Text);
 
-                if (jsonResponse != null && jsonResponse.TryGetValue("name", out string newUserId))
+                if (jsonResponse != null && jsonResponse.TryGetValue("id", out int newUserId))
                 {
                     promise.Resolve(newUserId);
                 }
                 else
                 {
-                    promise.Reject(new Exception("User ID not returned from Firebase"));
+                    promise.Reject(new Exception("User ID not returned from API"));
                 }
             }).Catch(error => { promise.Reject(error); });
 
@@ -77,32 +94,20 @@ namespace Libs.Repositories
 
         public static IPromise<ResponseHelper> UpdateUserInfo(User user)
         {
-            var userRequest = new UserRequest {userName = user.userName, balance = user.balance, userId = user.userId, imageUrl = user.imageUrl, buffPurchase = user.buffPurchase};
-            string keyUrlPart = $"{FirebaseDbUrl}users/{user.id}.json";
-            return RestClient.Put(keyUrlPart, userRequest);
+            string keyUrlPart = $"{BaseUrl}/{user.id}";
+            return RestClient.Put(keyUrlPart, user);
         }
 
-
-        public static Promise<double> GetUserBalanceById(string userId)
+        public static Promise<double> GetUserBalanceById(int userId)
         {
             return new Promise<double>((resolve, reject) =>
             {
-                string queryUrl = $"{FirebaseDbUrl}users.json?orderBy=\"userId\"&equalTo=\"{userId}\"";
+                string queryUrl = $"{BaseUrl}/{userId}/balance";
 
                 RestClient.Get(queryUrl).Then(response =>
                 {
-                    var rawUsers =
-                        JsonConvert.DeserializeObject<Dictionary<string, UserRequest>>(response.Text);
-                    if (rawUsers == null || !rawUsers.Any())
-                    {
-                        reject(new Exception("User not found for provided UserID"));
-                        return;
-                    }
+                    double.TryParse(response.Text, out double balance);
 
-                    var firstUserKey = rawUsers.Keys.First();
-                    var rawUser = rawUsers[firstUserKey];
-
-                    double balance = rawUser.balance;
                     resolve(balance);
                 }).Catch(error =>
                 {
@@ -115,27 +120,14 @@ namespace Libs.Repositories
         {
             return new Promise<List<User>>((resolve, reject) =>
             {
-                string queryUrl = $"{FirebaseDbUrl}users.json";
-
-                RestClient.Get(queryUrl).Then(response =>
+                RestClient.Get(BaseUrl).Then(response =>
                 {
-                    var rawUsers = JsonConvert.DeserializeObject<Dictionary<string, UserRequest>>(response.Text);
-                    if (rawUsers == null || !rawUsers.Any())
+                    if (string.IsNullOrEmpty(response.Text))
                     {
-                        reject(new Exception("No users found"));
-                        return;
+                        resolve(new List<User>());
                     }
-
-                    var users = rawUsers.Select(kvp =>
-                    {
-                        var user = new User
-                        {
-                            userId = kvp.Value.userId, userName = kvp.Value.userName, balance = kvp.Value.balance,
-                            imageUrl = kvp.Value.imageUrl, buffPurchase = kvp.Value.buffPurchase,
-                            id = kvp.Key
-                        };
-                        return user;
-                    }).ToList();
+                    
+                    List<User> users = JsonConvert.DeserializeObject<List<User>>(response.Text);
 
                     resolve(users);
                 }).Catch(error => { reject(new Exception($"Error retrieving all users: {error.Message}")); });
