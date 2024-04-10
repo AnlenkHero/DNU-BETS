@@ -137,13 +137,6 @@ namespace Libs.Repositories
             });
         }
 
-        public static IPromise<List<Match>> GetBettingAvailableMatches() //TODO replace
-        {
-            string queryUrl = $"{APISettings.Url}/match?available=true";
-
-            return RestClient.Get<List<Match>>(queryUrl);
-        }
-
         private static string ValidateMatch(MatchRequest match)
         {
             if (string.IsNullOrEmpty(match.MatchTitle))

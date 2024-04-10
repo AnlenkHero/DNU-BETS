@@ -12,8 +12,6 @@ namespace Libs.Repositories
 {
     public static class BetsRepository
     {
-        private const string FirebaseDbUrl = "https://wwe-bets-default-rtdb.europe-west1.firebasedatabase.app/";
-
         private static readonly ApiSettings APISettings = ConfigManager.Settings.ApiSettings;
         private static readonly string BaseUrl = $"{ConfigManager.Settings.ApiSettings.Url}/api/bet";
         

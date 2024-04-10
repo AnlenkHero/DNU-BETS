@@ -5,10 +5,9 @@ public class BetsHandler : MonoBehaviour
 {
     [SerializeField] private TMP_InputField tmpInputField;
     [SerializeField] private Button submitButton;
-    [SerializeField] private MoneyView money;
 
     public delegate void BetSubmittedHandler(double betAmount);
-    public event BetSubmittedHandler OnBetSubmitted;
+    public event BetSubmittedHandler OnBetSubmit;
 
     private void Awake()
     {
@@ -17,15 +16,15 @@ public class BetsHandler : MonoBehaviour
 
     private void SubmitBet()
     {
-        if (double.TryParse(tmpInputField.text, out double parsedValue) && parsedValue<= money.Balance)
+        if (double.TryParse(tmpInputField.text, out double parsedValue) && parsedValue <= UserData.Balance)
         {
-            OnBetSubmitted?.Invoke(parsedValue);
+            OnBetSubmit?.Invoke(parsedValue);
             ExitBetMenu();
         }
         else
         {
             tmpInputField.text = "Invalid bet.";
-            Debug.LogError("Invalid bet.");
+            Debug.LogError($"Invalid bet. Bet amount {parsedValue} user balance {UserData.Balance}");
         }
     }
 
@@ -33,6 +32,7 @@ public class BetsHandler : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
+    
     public void InitializeBetMenu()
     {
         gameObject.SetActive(true);
