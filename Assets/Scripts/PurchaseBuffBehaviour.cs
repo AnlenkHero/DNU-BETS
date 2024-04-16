@@ -9,7 +9,6 @@ using UnityEngine.UI;
 
 public class PurchaseBuffBehaviour : MonoBehaviour
 {
-    private double _buffPrice;
     [SerializeField] private MoneyView moneyView;
     [SerializeField] private Button purchaseBuffButton;
 
@@ -27,46 +26,28 @@ public class PurchaseBuffBehaviour : MonoBehaviour
                     InfoPanelManager.Instance.AddButton("Decline", () => InfoPanelManager.Instance.HidePanel(), ColorHelper.HotPinkString);
                 });
     }
+    
     private void PurchaseBuff()
     {
-        _buffPrice = ConfigManager.Settings.BuffPrice; //TODO most of the logic needs to be moved to API
-        if (moneyView.Balance >= _buffPrice)
+        var buffPurchase = new BuffPurchase()
         {
-            var tempBalance = moneyView.Balance - _buffPrice;
+            quantity = 1,
+            userId = UserData.UserId
+        };
 
-            UserRepository.GetUserById(UserData.UserId).Then(user =>
-            {
-                user.balance = tempBalance;
-                BuffPurchase buffPurchase = new BuffPurchase();
-                buffPurchase.date = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
-                buffPurchase.price = _buffPrice;
-                buffPurchase.quantity = 1;
-                buffPurchase.isProcessed = false;
+        BuffPurchasesRepository.CreatePurchase(buffPurchase).Then(id =>
+        {
+            InfoPanelManager.ShowPanel(ColorHelper.LightGreen,
+                "Buff is purchased successfully!");
+            
+            UserRepository.GetUserBalanceById(UserData.UserId)
+                .Then(balance => { moneyView.Balance = balance; })
+                .Catch(Debug.LogError);
+        }).Catch(e =>
+        {
+            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
+                $"Failed to purchase buff: {e.Message}");        
+        });
 
-                user.buffPurchase.Add(buffPurchase);
-                
-                UserRepository.UpdateUserInfo(user).Then(helper =>
-                    {
-                        moneyView.Balance -= _buffPrice;
-                        InfoPanelManager.ShowPanel(ColorHelper.LightGreen,
-                            "Success buff purchase");
-                        Debug.Log("Success buff purchase");
-                    })
-                    .Catch(exception =>
-                    {
-                        InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                            $"Failed to purchase buff. {exception.Message}");
-                    });
-            }).Catch(exception =>
-            {
-                InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                    $"Failed to get user by id. {exception.Message}");
-            });
-        }
-            else
-            {
-                InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                    $"You dont have enough money. Buff price is <color={ColorHelper.LightGreenString}>{_buffPrice}$</color>");
-            }
     }
 }
