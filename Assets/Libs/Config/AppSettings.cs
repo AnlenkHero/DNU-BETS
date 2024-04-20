@@ -7,7 +7,6 @@ namespace Libs.Config
     {
         public ApiSettings ApiSettings;
         public StorageSettings StorageSettings;
-        public double BuffPrice;
         public double DefaultBalance;    
     }
 }
