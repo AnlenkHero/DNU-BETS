@@ -9,6 +9,7 @@ namespace Libs.Config
         public string Login;
         public string Password;
         public string LoginEnpoint;
+        public string LoginByTokenEndpoint;
         public int TokenLifeTimeInSeconds;
 
         public bool UseAuthentication()

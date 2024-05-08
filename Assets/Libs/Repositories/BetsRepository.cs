@@ -126,7 +126,7 @@ namespace Libs.Repositories
         {
             if (bet.MatchId <= 0)
                 return "Match ID cannot be empty.";
-            if (bet.ContestantId <= 0)
+            if (bet.ContestantId < 0)
                 return "Contestant ID cannot be empty.";
             if (bet.BetAmount <= 0)
                 return "Bet amount should be greater than 0.";

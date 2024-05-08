@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using Firebase;
 using Firebase.Auth;
 using Google;
@@ -7,6 +8,7 @@ using Libs.Helpers;
 using Libs.Models;
 using Libs.Models.RequestModels;
 using Libs.Repositories;
+using RSG;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -37,7 +39,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
     private static void DebugLogIn()
     {
-        var testUserRequest = new UserRequest() { token = "116993585815267308373", userName = "N", balance = 1000 };
+        var testUserRequest = new UserRequest() { token = "116993585815267308373", userName = "Nigger", balance = 1000 };
         UserRepository.GetUserByToken(testUserRequest.token).Then(user =>
         {
             if (user == null)
@@ -45,13 +47,25 @@ public class FirebaseGoogleLogin : MonoBehaviour
                 UserRepository.SaveUser(testUserRequest).Then(userId =>
                 {
                     SetUserData(testUserRequest, userId);
-                    OnLoginFinished?.Invoke();
+                    ApiAuthManager.AuthenticateUserByToken(testUserRequest.token)
+                        .Then(() => OnLoginFinished?.Invoke())
+                        .Catch(e =>
+                        {
+                            Debug.LogError(e.Message);
+                            OnLoginFinished?.Invoke(); 
+                        });
                 }).Catch(error => { Debug.LogError(error.Message); });
                 return;
             }
             
             SetUserData(user);
-            OnLoginFinished?.Invoke();
+            ApiAuthManager.AuthenticateUserByToken(testUserRequest.token)
+                .Then(() => OnLoginFinished?.Invoke())
+                .Catch(e =>
+                {
+                    Debug.LogError(e.Message);
+                    OnLoginFinished?.Invoke(); 
+                });
         }).Catch(error => { Debug.LogError($"Error while logging in with debug {error.Message}"); });
     }
 
@@ -214,9 +228,16 @@ public class FirebaseGoogleLogin : MonoBehaviour
                     return;
                 }
                 
-                UpdateUserData(user);
-                OnLoginFinished?.Invoke();
-                loginPanel.SetActive(false);
+                UpdateUserData(user).Then(() =>
+                {
+                    OnLoginFinished?.Invoke();
+                    loginPanel.SetActive(false);
+                }).Catch(err =>
+                {
+                    Debug.LogError(err.Message);
+                    OnLoginFinished?.Invoke();
+                    loginPanel.SetActive(false);
+                });
             })
             .Catch(error=>
             {
@@ -224,16 +245,37 @@ public class FirebaseGoogleLogin : MonoBehaviour
             });
     }
 
-    private void UpdateUserData(User userId)
+    private IPromise UpdateUserData(User user)
     {
-        UserData.Balance = userId.balance;
-        UserData.Name = userId.userName;
-        UserRepository.UpdateUserInfo(userId);
+        return new Promise((resolve, reject) =>
+        {
+            UserData.Balance = user.balance;
+            UserData.Name = user.userName;
+
+            // Authenticate the user by token
+            ApiAuthManager.AuthenticateUserByToken(user.token)
+                .Then(() =>
+                {
+                    UserRepository.UpdateUserInfo(user)
+                        .Then(_ =>
+                        {
+                            resolve();
+                        })
+                        .Catch(error =>
+                        {
+                            reject(error);
+                        });
+                })
+                .Catch(error =>
+                {
+                    reject(error);
+                });
+        });
     }
 
     private void SaveNewUser(UserRequest request)
     {
-        request.balance = ConfigManager.Settings.DefaultBalance; //TODO move this logic to API along with APPSETTINGS REPOSITORY
+        request.balance = ConfigManager.Settings.DefaultBalance;
 
         UserRepository.SaveUser(request)
             .Then(userId =>
@@ -241,7 +283,12 @@ public class FirebaseGoogleLogin : MonoBehaviour
                 UserData.Name = request.userName;
                 UserData.Balance = request.balance;
                 UserData.UserId = userId;
-                OnLoginFinished?.Invoke();
+                ApiAuthManager.AuthenticateUserByToken(request.token)
+                    .Then(() => OnLoginFinished?.Invoke())
+                    .Catch((err) =>
+                    {
+                        Debug.LogError(err.Message);
+                    });
                 loginPanel.SetActive(false);
             });
     }

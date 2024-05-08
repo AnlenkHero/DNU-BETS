@@ -5,21 +5,44 @@ using Libs.Config;
 using Libs.Models;
 using Newtonsoft.Json;
 using Proyecto26;
+using RSG;
 using UnityEngine;
 
 public class ApiAuthManager : MonoBehaviour
 {
     private const int SecondsBeforeReaAuth = 5;
-
     public static Action OnApiAuthenticated;
 
+    public static IPromise AuthenticateUserByToken(string token) //TODO somehow handle 401 after token expires
+    {
+        ApiSettings apiSettings = ConfigManager.Settings.ApiSettings;
+
+        var requestHelper = new RequestHelper
+        {
+            Uri = $"{apiSettings.Url}/{apiSettings.LoginByTokenEndpoint}?token={token}"
+        };
+
+        return new Promise((resolve, reject) =>
+        {
+            RestClient.Post(requestHelper).Then(response =>
+            {
+                RestClient.DefaultRequestHeaders["Authorization"] = $"Bearer {response.Text}";
+                
+                resolve();
+            }).Catch(error =>
+            {
+                reject(error);
+            });
+        });
+    }
+    
     private void Awake()
     {
         ApiSettings apiSettings = ConfigManager.Settings.ApiSettings;
 
         if (apiSettings.UseAuthentication())
         {
-            AuthenticateUser(apiSettings);
+            AuthenticateMobileApp(apiSettings);
             StartCoroutine(StartReAuthenticationTimer(apiSettings));
             return;
         }
@@ -27,7 +50,7 @@ public class ApiAuthManager : MonoBehaviour
         OnApiAuthenticated?.Invoke();
     }
 
-    private void AuthenticateUser(ApiSettings apiSettings)
+    private void AuthenticateMobileApp(ApiSettings apiSettings)
     {
         var requestHeaders = new Dictionary<string, string>
         {
@@ -68,9 +91,11 @@ public class ApiAuthManager : MonoBehaviour
             OnApiAuthenticated?.Invoke();
         }).Catch(e =>
         {
-            var test = e as RequestException;
+            var requestException = e as RequestException;
+            
             OnApiAuthenticated?.Invoke();
-            Debug.LogError($"Failed to fetch settings: {e.Message}");
+            
+            Debug.LogError($"Failed to fetch settings: {requestException.StatusCode}:{requestException.Message}");
         });
     }
 
@@ -79,7 +104,7 @@ public class ApiAuthManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(apiSettings.TokenLifeTimeInSeconds - SecondsBeforeReaAuth);
-            AuthenticateUser(apiSettings);
+            AuthenticateMobileApp(apiSettings);
         }
     }
 }

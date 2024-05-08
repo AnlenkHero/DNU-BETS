@@ -19,6 +19,7 @@ public class Leaderboard : MonoBehaviour
     [SerializeField]
     private Color[] topColors = { Color.yellow, Color.gray, Color.Lerp(Color.red, Color.yellow, 0.5f) };
     
+    private const int TopUsersCount = 3;
     private List<User> _allUsersList = new();
     private readonly Color32[] _gradientColors = { ColorHelper.PaleYellow, ColorHelper.LightGreen };
     private readonly float[] _gradientTimes = { 0.5f, 1.0f };
@@ -60,7 +61,7 @@ public class Leaderboard : MonoBehaviour
     private void ProcessUsers()
     {
         ApplyBuffPurchasesToUsers(_allUsersList);
-        var topUsers = _allUsersList.OrderByDescending(u => u.balance).Take(3).ToList();
+        var topUsers = _allUsersList.OrderByDescending(u => u.balance).Take(TopUsersCount).ToList();
         DisplayTopUsers(topUsers);
         _isLeaderboardRefreshing = false;
     }
