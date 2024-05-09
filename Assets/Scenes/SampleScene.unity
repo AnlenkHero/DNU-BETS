@@ -293,8 +293,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 800705778}
   m_HandleRect: {fileID: 800705777}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 0.3356643
+  m_Value: -0.00000006424753
+  m_Size: 0.33566433
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -9518,7 +9518,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tmpInputField: {fileID: 1532426305}
   submitButton: {fileID: 2099033127}
-  money: {fileID: 1986419711}
 --- !u!1 &1177745757
 GameObject:
   m_ObjectHideFlags: 0
@@ -10047,7 +10046,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   betsHandler: {fileID: 1170589851}
   moneyView: {fileID: 1986419711}
-  dataMapper: {fileID: 2119366849}
 --- !u!4 &1284284210
 Transform:
   m_ObjectHideFlags: 0
@@ -11378,7 +11376,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e4f3753c51439ab438e1ed2e522f17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 11400000, guid: f66305d6c671610418359c35906bda19, type: 2}
+  settings: {fileID: 11400000, guid: c65720dbbc82630418d43ec7bf7f94b1, type: 2}
 --- !u!1 &1583896423
 GameObject:
   m_ObjectHideFlags: 0
@@ -12401,7 +12399,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 1900.0002, y: 0.00024414062}
+  m_AnchoredPosition: {x: 1900.0001, y: 0.00024414062}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1776453862
@@ -12817,7 +12815,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 1919.9998
+  m_MinWidth: 1920.0001
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
@@ -14131,7 +14129,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 1919.9998
+  m_MinWidth: 1920.0001
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
@@ -14353,7 +14351,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 1919.9998
+  m_MinWidth: 1920.0001
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
@@ -14615,7 +14613,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4627913529960507308}
   m_HandleRect: {fileID: 8503928328211547236}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:

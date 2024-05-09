@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 34f6a2f02735452292b2b515e82297cf, type: 3}
-  m_Name: Development mobile
+  m_Name: Development
   m_EditorClassIdentifier: 
   ApiSettings:
     Url: http://localhost:5275
-    Login: MobileUser
-    Password: 1F297718-D35E-4245-A1FB-D194B1319E88
+    Login: Admin
+    Password: C849817F-5674-4509-A0DF-A92C44C0DB2C
     LoginEnpoint: api/authentication/login
+    LoginByTokenEndpoint: api/authentication/token-login
     TokenLifeTimeInSeconds: 86400
   StorageSettings:
     ImageStorageUrl: https://firebasestorage.googleapis.com/v0/b/wwe-bets.appspot.com
-  BuffPrice: 2500
   DefaultBalance: 300
