@@ -17,36 +17,25 @@ public class FirebaseGoogleLogin : MonoBehaviour
     public string webClientId = "1062902385276-u12o6kiqrmjcssl54u5i2n4cg17orqqb.apps.googleusercontent.com";
 
     [SerializeField] private TextMeshProUGUI statusText;
-    [SerializeField] private RawImage profileImage;
-    [SerializeField] private Button profileImageButton;
     [SerializeField] private GameObject loginPanel;
-    [SerializeField] private NameChanger nameChangerElement;
 
     private FirebaseAuth _auth;
     private GoogleSignInConfiguration _configuration;
     private bool _isSignInInProgress;
     public static Action OnLoginFinished;
+    public static Action OnUserTextureLoadingFinished;
 
     private void OnEnable()
     {
         NetworkCheck.OnInternetEstablished += SignInWithGoogle;
+        UserProfileManager.OnSignOut += OnSignOut;
+
+//         LogIn();
+        DebugLogIn();
     }
 
-    private void OnDisable()
-    {
-        NetworkCheck.OnInternetEstablished -= SignInWithGoogle;
-    }
 
-    private void Awake()
-    {
-        GalleryFileManager.FunctionOnPickedFileReturn += ChangePhoto;
-        profileImageButton.onClick.AddListener(ShowProfilePanel);
-
-        LogIn();
-        //DebugLogIn();
-    }
-
-    private static void DebugLogIn()
+    private void DebugLogIn()
     {
         var user = new UserRequest() { userId = "116993585815267308373", userName = "N", balance = 1000 };
         UserRepository.GetUserByUserId(user.userId).Then(userId =>
@@ -54,6 +43,8 @@ public class FirebaseGoogleLogin : MonoBehaviour
             UserData.Balance = userId.balance;
             UserData.Name = userId.userName;
             UserData.UserId = user.userId;
+            LoadUserImage(userId.imageUrl);
+
             OnLoginFinished?.Invoke();
         }).Catch(errorUser =>
         {
@@ -75,41 +66,6 @@ public class FirebaseGoogleLogin : MonoBehaviour
         SignInWithGoogle();
     }
 
-    private void ChangePhoto(string path)
-    {
-        Texture2D originalTexture = GalleryFileManager.GetTexture2DIOS(path);
-        Texture2D resizedTexture = ImageProcessing.ResizeAndCompressTexture(originalTexture, 600, 600, 100);
-
-        ImageCropperNamespace.ImageCropper.Crop(resizedTexture, (croppedTexture) =>
-        {
-            Texture2D readableTexture = croppedTexture;
-
-            profileImage.texture = readableTexture;
-            UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
-            {
-                ImageHelper.UploadImage(readableTexture, $"{Guid.NewGuid()}.png").Then(imageUrl =>
-                {
-                    ImageHelper.DeleteImage(user.imageUrl).Finally(() =>
-                    {
-                        user.imageUrl = imageUrl;
-                        UserRepository.UpdateUserInfo(user)
-                            .Catch(Debug.Log);
-                    });
-                }).Catch(Debug.Log);
-            }).Catch(Debug.Log);
-        });
-    }
-
-    private void ShowProfilePanel()
-    {
-        InfoPanelManager.ShowPanel(Color.white, callback: () =>
-        {
-            Instantiate(nameChangerElement, InfoPanelManager.Instance.createdElementsParent);
-            InfoPanelManager.Instance.AddButton("Change photo", GalleryFileManager.PickPhoto, ColorHelper.PaleYellowString);
-            InfoPanelManager.Instance.AddButton("Sign out", OnSignOut, ColorHelper.HotPinkString);
-            InfoPanelManager.Instance.AddButton("Close", InfoPanelManager.Instance.HidePanel, ColorHelper.PaleYellowString);
-        });
-    }
 
     private void CheckFirebaseDependencies()
     {
@@ -156,10 +112,7 @@ public class FirebaseGoogleLogin : MonoBehaviour
         AddToInformation("Calling SignOut");
         GoogleSignIn.DefaultInstance.SignOut();
 
-        UserData.UserId = "";
-        UserData.Balance = 0;
-        UserData.Name = "";
-        profileImage.texture = null;
+        UserData.ClearUserData();
 
         loginPanel.SetActive(true);
         InfoPanelManager.Instance.HidePanel();
@@ -218,14 +171,14 @@ public class FirebaseGoogleLogin : MonoBehaviour
         UserRepository.GetUserByUserId(user.userId)
             .Then(userId =>
             {
-                LoadUserProfileImage(userId.imageUrl);
+                LoadUserImage(userId.imageUrl);
                 UpdateUserData(userId);
                 OnLoginFinished?.Invoke();
                 loginPanel.SetActive(false);
             })
             .Catch(errorUser =>
             {
-                LoadUserProfileImage(user.imageUrl);
+                LoadUserImage(user.imageUrl);
                 SaveNewUser(user);
             });
     }
@@ -258,13 +211,14 @@ public class FirebaseGoogleLogin : MonoBehaviour
             }).Catch(exception => AddToInformation($"Failed to get AppSettings {exception}"));
     }
 
-    private void LoadUserProfileImage(string imageUrl)
+    private void LoadUserImage(string imageUrl)
     {
         TextureLoader.LoadTexture(this, imageUrl, texture2D =>
         {
             if (texture2D != null)
             {
-                profileImage.texture = texture2D;
+                UserData.ProfileImage = texture2D;
+                OnUserTextureLoadingFinished?.Invoke();
             }
             else
             {
@@ -280,18 +234,23 @@ public class FirebaseGoogleLogin : MonoBehaviour
 
         _auth.SignInWithCredentialAsync(credential).ContinueWith(task =>
         {
-            AggregateException ex = task.Exception;
-
-            if (ex != null)
+            if (task.Exception != null)
             {
-                if (ex.InnerExceptions[0] is FirebaseException inner && (inner.ErrorCode != 0))
-                    AddToInformation("\nError code = " + inner.ErrorCode + " Message = " + inner.Message);
+                AddFirebaseSignInError(task.Exception);
             }
             else
             {
                 AddToInformation("Sign In Successful.");
             }
         });
+    }
+
+    private void AddFirebaseSignInError(AggregateException exception)
+    {
+        if (exception.InnerExceptions[0] is FirebaseException firebaseEx && firebaseEx.ErrorCode != 0)
+        {
+            AddToInformation($"Firebase SignIn Error - Code: {firebaseEx.ErrorCode}, Message: {firebaseEx.Message}");
+        }
     }
 
     private void AddToInformation(string str)

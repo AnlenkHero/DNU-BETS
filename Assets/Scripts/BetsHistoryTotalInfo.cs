@@ -18,7 +18,7 @@ public class BetsHistoryTotalInfo : MonoBehaviour
         if (betsCount > 0 && (betsCount - matchesCanceled) > 0)
         {
             double percentage = (double)betsWon / (betsCount - matchesCanceled) * 100;
-            winPercentage.text = $"{percentage:F2}<color=#000000>%</color> ";
+            winPercentage.text = $"{percentage:F2}<color={ColorHelper.BlackString}>%</color> ";
             
             switch (percentage)
             {

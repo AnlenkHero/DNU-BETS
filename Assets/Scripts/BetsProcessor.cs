@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Libs.Models;
 
-public class BetsProcessor
+public static class BetsProcessor
 {
     public struct ProcessedBetDetail
     {

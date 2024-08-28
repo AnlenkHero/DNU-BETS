@@ -49,4 +49,19 @@ public class MatchView : MonoBehaviour
         }
     }
     
+    public void HideAllButtons()
+    {
+        foreach (var betButtonView in buttonViews)
+        {
+            betButtonView.Hide();
+        }
+    }
+    
+    public void ShowAllButtons()
+    {
+        foreach (var betButtonView in buttonViews)
+        {
+            betButtonView.Show();
+        }
+    }
 }

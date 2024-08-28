@@ -27,8 +27,8 @@ public class Leaderboard : MonoBehaviour
 
     private void OnEnable()
     {
-        DataMapper.OnMapDataStarted += StartLoading;
-        DataMapper.OnMapDataFinished += FetchAndDisplayLeaderboard;
+        DataFetcher.OnFetchDataStarted += StartLoading;
+        DataFetcher.OnFetchDataFinished += FetchAndDisplayLeaderboard;
     }
 
     private void Start()
@@ -60,9 +60,21 @@ public class Leaderboard : MonoBehaviour
     private void ProcessUsers()
     {
         ApplyBuffPurchasesToUsers(_allUsersList);
-        var topUsers = _allUsersList.OrderByDescending(u => u.balance).Take(3).ToList();
+        var topUsers = GetTopUsers();
         DisplayTopUsers(topUsers);
+        FinishLoading();
+    }
+
+    private void FinishLoading()
+    {
+        leaderboardSkeletonLoading.SetActive(false);
         _isLeaderboardRefreshing = false;
+    }
+
+    private List<User> GetTopUsers()
+    {
+        var topUsers = _allUsersList.OrderByDescending(u => u.balance).Take(3).ToList();
+        return topUsers;
     }
 
     private void ApplyBuffPurchasesToUsers(List<User> users)
@@ -86,8 +98,6 @@ public class Leaderboard : MonoBehaviour
                     biggestGamblerMaterial);
             }
         }
-
-        leaderboardSkeletonLoading.SetActive(false);
     }
     
     private IPromise WrapGetAllUsers()

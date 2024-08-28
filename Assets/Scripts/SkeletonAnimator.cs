@@ -27,13 +27,12 @@ public class SkeletonAnimator : MonoBehaviour
                 image.color = Color.Lerp(Color.black, Color.white, lerpValue);
             }
 
-            if (background != null)
+
+            foreach (var element in background)
             {
-                foreach (var element in background)
-                {
-                    element.color = Color.Lerp(Color.white, Color.black, lerpValue);
-                }
+                element.color = Color.Lerp(Color.white, Color.black, lerpValue);
             }
+
 
             time += Time.deltaTime;
             yield return null;

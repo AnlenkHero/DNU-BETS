@@ -5,12 +5,13 @@ using Libs.Models;
 using Libs.Models.RequestModels;
 using Libs.Repositories;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class BetsController : MonoBehaviour
 {
     [SerializeField] private BetsHandler betsHandler;
     [SerializeField] private MoneyView moneyView;
-    [SerializeField] private DataMapper dataMapper;
+    [SerializeField] private DataFetcher dataFetcher;
     private BetButtonEventArgs _betButtonEventArgs;
 
     public static event Action OnBetPosted;
@@ -21,24 +22,12 @@ public class BetsController : MonoBehaviour
         BetButtonView.OnButtonClick += InitializeBetFields;
     }
 
-    private void OnDisable()
-    {
-        betsHandler.OnBetSubmitted -= HandleBetSubmitted;
-        BetButtonView.OnButtonClick -= InitializeBetFields;
-    }
-
     private void HandleBetSubmitted(double betAmount)
     {
-        foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
-        {
-            betButtonView.Hide();
-        }
+        _betButtonEventArgs.MatchViewParent.HideAllButtons();
 
-        var newBetRequest = new BetRequest()
-        {
-            BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId,
-            MatchId = _betButtonEventArgs.MatchId, IsActive = true
-        };
+        BetRequest newBetRequest = CreateNewBetRequest(betAmount);
+
         MatchesRepository.GetMatchById(newBetRequest.MatchId).Then(match =>
         {
             if (match.IsBettingAvailable)
@@ -48,41 +37,9 @@ public class BetsController : MonoBehaviour
                     InfoPanelManager.ShowPanel(ColorHelper.LightGreen,
                         $"Bet has been successfully made. \nContestant name: {_betButtonEventArgs.Contestant.Name} \nBet amount: {betAmount}$ \nCoefficient: {_betButtonEventArgs.Contestant.Coefficient}");
 
-                    var tempBalance = moneyView.Balance - betAmount;
+                    UpdateUserBalance(betAmount);
+                    UpdateCache(betId, newBetRequest);
 
-                    UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
-                    {
-                        user.balance = tempBalance;
-
-                        UserRepository.UpdateUserInfo(user).Then(helper =>
-                        {
-                            moneyView.Balance -= betAmount;
-                            Debug.Log("success money update");
-                        }).Catch(exception =>
-                        {
-                            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                                $"Error to update balance. {exception.Message}");
-                        });
-                    }).Catch(exception =>
-                    {
-                        InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                            $"Error to get user by id. {exception.Message}");
-                    });
-
-                    Bet newBet = new()
-                    {
-                        BetId = betId, MatchId = newBetRequest.MatchId, IsActive = newBetRequest.IsActive,
-                        BetAmount = newBetRequest.BetAmount, ContestantId = newBetRequest.ContestantId,
-                        UserId = newBetRequest.UserId
-                    };
-
-                    if (BetCache.Bets == null)
-                        BetCache.Bets = new List<Bet> { newBet };
-                    else
-                        BetCache.Bets.Add(newBet);
-                    
-                    ActiveBetsCache.AddActiveBetId(betId);
-                    
                     OnBetPosted?.Invoke();
                 }).Catch(exception =>
                 {
@@ -92,26 +49,63 @@ public class BetsController : MonoBehaviour
             }
             else
             {
-                InfoPanelManager.ShowPanel(ColorHelper.HotPink,
+                ShowErrorAndButtons(ColorHelper.HotPink,
                     "Betting not available for this match");
-                foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
-                {
-                    betButtonView.Show();
-                }
-
-                dataMapper.MapData();
             }
         }).Catch(exception =>
         {
-            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
+            ShowErrorAndButtons(ColorHelper.HotPink,
                 $"Error to get match by id for bet. {exception.Message}");
-            foreach (var betButtonView in _betButtonEventArgs.MatchViewParent.buttonViews)
-            {
-                betButtonView.Show();
-            }
-
-            dataMapper.MapData();
         });
+    }
+
+    private void UpdateUserBalance(double betAmount)
+    {
+        UserRepository.GetUserByUserId(UserData.UserId).Then(user =>
+        {
+            user.balance = moneyView.Balance - betAmount;
+
+            UserRepository.UpdateUserInfo(user).Then(helper =>
+            {
+                moneyView.Balance -= betAmount;
+                Debug.Log("success money update");
+            }).Catch(exception =>
+            {
+                InfoPanelManager.ShowPanel(ColorHelper.HotPink,
+                    $"Error to update balance. {exception.Message}");
+            });
+        }).Catch(exception =>
+        {
+            InfoPanelManager.ShowPanel(ColorHelper.HotPink,
+                $"Error to get user by id. {exception.Message}");
+        });
+    }
+
+    private BetRequest CreateNewBetRequest(double betAmount)
+    {
+        var newBetRequest = new BetRequest()
+        {
+            BetAmount = betAmount, ContestantId = _betButtonEventArgs.Contestant.Id, UserId = UserData.UserId,
+            MatchId = _betButtonEventArgs.MatchId, IsActive = true
+        };
+        return newBetRequest;
+    }
+
+    private static void UpdateCache(string betId, BetRequest newBetRequest)
+    {
+        Bet newBet = new()
+        {
+            BetId = betId, MatchId = newBetRequest.MatchId, IsActive = newBetRequest.IsActive,
+            BetAmount = newBetRequest.BetAmount, ContestantId = newBetRequest.ContestantId,
+            UserId = newBetRequest.UserId
+        };
+
+        if (BetCache.Bets == null)
+            BetCache.Bets = new List<Bet> { newBet };
+        else
+            BetCache.Bets.Add(newBet);
+
+        ActiveBetsCache.AddActiveBetId(betId);
     }
 
 
@@ -119,5 +113,13 @@ public class BetsController : MonoBehaviour
     {
         _betButtonEventArgs = args;
         betsHandler.InitializeBetMenu();
+    }
+
+    private void ShowErrorAndButtons(Color32 errorColor, string errorMessage)
+    {
+        InfoPanelManager.ShowPanel(errorColor, errorMessage);
+        _betButtonEventArgs.MatchViewParent.ShowAllButtons();
+
+        dataFetcher.FetchData();
     }
 }

@@ -80,7 +80,6 @@ public class ResetBehaviour : MonoBehaviour
         {
             InfoPanelManager.ShowPanel(ColorHelper.HotPink,
                 $"Failed to get user by id. {exception.Message}");
-        });
-        InfoPanelManager.Instance.HidePanel();
+        }); 
     }
 }

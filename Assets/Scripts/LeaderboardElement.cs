@@ -65,7 +65,7 @@ public class LeaderboardElement : MonoBehaviour
                 .Catch(exception =>
                 {
                     InfoPanelManager.ShowPanel(ColorHelper.HotPink,
-                        $"<color=#FFFFFF>{user.userName}</color>\n\nUser has no bets or an error occurred.");
+                        $"<color={ColorHelper.WhiteString}>{user.userName}</color>\n\nUser has no bets or an error occurred.");
                     Debug.LogError(exception.Message);
                 });
         }
@@ -103,8 +103,8 @@ public class LeaderboardElement : MonoBehaviour
         }
         else
         {
-            winPercentage = "<color=#ffffff>N/A</color>% ";
-            winToLose = $"<color=#ffffff>{stats.BetsWon.ToString()} - {stats.BetsLost.ToString()}</color>% ";
+            winPercentage = $"<color={ColorHelper.WhiteString}>N/A</color>% ";
+            winToLose = $"<color={ColorHelper.WhiteString}>{stats.BetsWon.ToString()} - {stats.BetsLost.ToString()}</color>% ";
         }
 
         string gainedMoney =

@@ -22,8 +22,8 @@ public class BetsHistory : MonoBehaviour
 
     private void OnEnable()
     {
-        DataMapper.OnMapDataStarted += StartLoading;
-        DataMapper.OnMapDataFinished += FetchAndProcessBets;
+        DataFetcher.OnFetchDataStarted += StartLoading;
+        DataFetcher.OnFetchDataFinished += FetchAndProcessBets;
         BetsController.OnBetPosted += FetchAndProcessBets;
     }
 
@@ -54,14 +54,7 @@ public class BetsHistory : MonoBehaviour
         {
             CheckForInactiveWonBets(stats.ProcessedBets);
 
-            foreach (var processedBet in stats.ProcessedBets)
-            {
-                var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
-
-                tempBetHistoryElement.SetData(processedBet);
-
-                betHistoryElements.Add(tempBetHistoryElement);
-            }
+            CreateBetHistoryElements(stats, betHistoryElements);
 
             SortBetsHistory(betHistoryElements);
 
@@ -71,6 +64,18 @@ public class BetsHistory : MonoBehaviour
             SetLoadingState(false);
             StartCoroutine(ScrollToTop());
         });
+    }
+
+    private void CreateBetHistoryElements(BetsProcessor.BetStats stats, List<BetHistoryElement> betHistoryElements)
+    {
+        foreach (var processedBet in stats.ProcessedBets)
+        {
+            var tempBetHistoryElement = Instantiate(betHistoryElement, betHistoryParent);
+
+            tempBetHistoryElement.SetData(processedBet);
+
+            betHistoryElements.Add(tempBetHistoryElement);
+        }
     }
 
     private static void SortBetsHistory(List<BetHistoryElement> betHistoryElements)
@@ -120,6 +125,11 @@ public class BetsHistory : MonoBehaviour
         foreach (string id in betIds)
         {
             var betDetail = bets.FirstOrDefault(b => b.Bet.BetId == id);
+            if (betDetail.Equals(default(BetsProcessor.ProcessedBetDetail)))
+            {
+                ActiveBetsCache.RemoveActiveBetId(id);
+                continue;
+            }
             if (betDetail.Bet.IsActive) continue;
 
             betsBecameInactive = true;

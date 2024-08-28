@@ -101,7 +101,7 @@ namespace Libs.Repositories
 
                 RestClient.Get(queryUrl).Then(response =>
                 {
-                    var rawBets = JsonConvert.DeserializeObject<Dictionary<string, Bet>>(response.Text);
+                    var rawBets = JsonConvert.DeserializeObject<Dictionary<string, BetRequest>>(response.Text);
 
                     if (rawBets == null || !rawBets.Any())
                     {
