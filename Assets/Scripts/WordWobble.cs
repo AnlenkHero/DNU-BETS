@@ -1,8 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
-
 
 [ExecuteInEditMode]
 public class WordWobble : MonoBehaviour
@@ -24,7 +24,7 @@ public class WordWobble : MonoBehaviour
         public float colorSpeed4;
         public float speedMultiplier;
         public float amplitudeMultiplier;
-        public float riseDuration; 
+        public float riseDuration;
         public float fallDuration;
         public float delayBetweenLetters;
     }
@@ -41,10 +41,33 @@ public class WordWobble : MonoBehaviour
         Custom
     }
 
+    public enum GradientDirection
+    {
+        LeftToRight,
+        RightToLeft,
+        TopToBottom,
+        BottomToTop,
+        DiagonalLeftToRight,
+        DiagonalRightToLeft,
+        DiagonalTopToBottom,
+        DiagonalBottomToTop
+    }
+    public enum GradientMode
+    {
+        Static,
+        Animated
+    }
+    
+    [SerializeField] private float updateInterval = 0.05f;
+
     [SerializeField] private WobbleMode wobbleMode = WobbleMode.SinCos;
+    [SerializeField] private bool useParallel;
+    [SerializeField] private bool usePerLetterGradient;
+    
 
-    [SerializeField] private bool useParallel; 
-
+    [SerializeField]
+    private GradientDirection gradientDirection = GradientDirection.LeftToRight; 
+    [SerializeField] private GradientMode gradientMode = GradientMode.Animated;
     [SerializeField] private AnimationSettings animationSettings = new AnimationSettings
     {
         verticesOffset1 = 3.5f,
@@ -71,48 +94,68 @@ public class WordWobble : MonoBehaviour
     private TMP_Text _textMesh;
     private Mesh _mesh;
     private Vector3[] _vertices;
-    private List<int> _wordIndexes;
-    private List<int> _wordLengths;
+    private Color[] _colors;
+    private TMP_TextInfo _textInfo;
+    private Coroutine _animationCoroutine;
 
-    void Start()
+    private void Start()
     {
         _textMesh = GetComponent<TMP_Text>();
+        _textMesh.ForceMeshUpdate(); 
+        _textInfo = _textMesh.textInfo;
 
-        _wordIndexes = new List<int> { 0 };
-        _wordLengths = new List<int>();
+        _mesh = _textMesh.mesh;
+        _vertices = _mesh.vertices;
+        _colors = new Color[_vertices.Length];
 
-        string s = _textMesh.text;
-        for (int index = s.IndexOf(' '); index > -1; index = s.IndexOf(' ', index + 1))
-        {
-            _wordLengths.Add(index - _wordIndexes[_wordIndexes.Count - 1]);
-            _wordIndexes.Add(index + 1);
-        }
-
-        _wordLengths.Add(s.Length - _wordIndexes[_wordIndexes.Count - 1]);
+        _animationCoroutine = StartCoroutine(AnimateText());
     }
 
-    void Update()
+    private IEnumerator AnimateText()
     {
-        _textMesh.ForceMeshUpdate();
-        var textInfo = _textMesh.textInfo;
-
-        for (int i = 0; i < textInfo.characterCount; ++i)
+        while (true)
         {
-            var charInfo = textInfo.characterInfo[i];
-            if (!charInfo.isVisible) continue;
-
-            float timeOffset = useParallel ? i * animationSettings.delayBetweenLetters : i;
-            _vertices = textInfo.meshInfo[charInfo.materialReferenceIndex].vertices;
-            Vector3 offset = ApplyWobbleEffect(Time.time + timeOffset, i, wobbleMode);
-
-            for (int j = 0; j < 4; ++j)
+            _textMesh.ForceMeshUpdate(); 
+            for (int i = 0; i < _textInfo.characterCount; i++)
             {
-                _vertices[charInfo.vertexIndex + j] += offset * GetOffsetByIndex(j);
-            }
-        }
+                var charInfo = _textInfo.characterInfo[i];
+                if (!charInfo.isVisible) continue;
 
-        UpdateMeshVertices(textInfo);
-        UpdateVertexColors();
+                float timeOffset = useParallel ? i * animationSettings.delayBetweenLetters : i;
+                Vector3 offset = ApplyWobbleEffect(Time.time + timeOffset, i, wobbleMode);
+
+                for (int j = 0; j < 4; ++j)
+                {
+                    int vertexIndex = charInfo.vertexIndex + j;
+                    _vertices[vertexIndex] = _textInfo.meshInfo[charInfo.materialReferenceIndex].vertices[vertexIndex] +
+                                             offset * GetOffsetByIndex(j);
+
+                    if (usePerLetterGradient)
+                    {
+                        _colors[vertexIndex] = GetSmoothGradientColor(i, j);
+                    }
+                    else
+                    {
+                        if (gradientMode == GradientMode.Animated)
+                        {
+                            _colors[vertexIndex] = rainbow.Evaluate(Mathf.Repeat(
+                                Time.time + _vertices[vertexIndex].x * GetColorSpeedByIndex(j), GetColorLengthByIndex(j)));
+                        }
+                        else
+                        {
+                            _colors[vertexIndex] = rainbow.Evaluate(
+                                _vertices[vertexIndex].x * GetColorSpeedByIndex(j) * GetColorLengthByIndex(j));
+                        }
+                    }
+                }
+            }
+
+            _mesh.vertices = _vertices;
+            _mesh.colors = _colors;
+            _textMesh.canvasRenderer.SetMesh(_mesh);
+
+            yield return new WaitForSeconds(updateInterval);
+        }
     }
 
     private Vector3 ApplyWobbleEffect(float time, int index, WobbleMode mode)
@@ -178,47 +221,53 @@ public class WordWobble : MonoBehaviour
         return new Vector2(Mathf.Sin(time), Mathf.Cos(time) * Mathf.Sin(time));
     }
 
-    private void UpdateMeshVertices(TMP_TextInfo textInfo)
+    private Color GetSmoothGradientColor(int characterIndex, int vertexIndex)
     {
-        for (int i = 0; i < textInfo.meshInfo.Length; ++i)
+        float positionInGradient = 0f;
+        switch (gradientDirection)
         {
-            var meshInfo = textInfo.meshInfo[i];
-            meshInfo.mesh.vertices = meshInfo.vertices;
-            _textMesh.UpdateGeometry(meshInfo.mesh, i);
+            case GradientDirection.LeftToRight:
+                positionInGradient = (float)characterIndex / _textInfo.characterCount;
+                break;
+            case GradientDirection.RightToLeft:
+                positionInGradient = 1f - (float)characterIndex / _textInfo.characterCount;
+                break;
+            case GradientDirection.TopToBottom:
+                positionInGradient = (float)vertexIndex / 4;
+                break;
+            case GradientDirection.BottomToTop:
+                positionInGradient = 1f - (float)vertexIndex / 4;
+                break;
+            case GradientDirection.DiagonalLeftToRight:
+                positionInGradient = ((float)characterIndex / _textInfo.characterCount + (float)vertexIndex / 4) / 2f;
+                break;
+            case GradientDirection.DiagonalRightToLeft:
+                positionInGradient =
+                    (1f - (float)characterIndex / _textInfo.characterCount + (1f - (float)vertexIndex / 4)) / 2f;
+                break;
+            case GradientDirection.DiagonalTopToBottom:
+                positionInGradient = ((float)vertexIndex / 4 + (float)characterIndex / _textInfo.characterCount) / 2f;
+                break;
+            case GradientDirection.DiagonalBottomToTop:
+                positionInGradient =
+                    (1f - (float)vertexIndex / 4 + (1f - (float)characterIndex / _textInfo.characterCount)) / 2f;
+                break;
+            default:
+                positionInGradient = (float)characterIndex / _textInfo.characterCount;
+                break;
         }
-    }
 
-    private void UpdateVertexColors()
-    {
-        _mesh = _textMesh.mesh;
-        _vertices = _mesh.vertices;
-        Color[] colors = _mesh.colors;
 
-        for (int w = 0; w < _wordIndexes.Count; w++)
-        { 
-            int wordIndex = _wordIndexes[w];
 
-            for (int i = 0; i < _wordLengths[w]; i++)
+            if (gradientMode == GradientMode.Static)
             {
-                TMP_CharacterInfo c = _textMesh.textInfo.characterInfo[wordIndex + i];
-                int index = c.vertexIndex;
-
-                colors[index] = rainbow.Evaluate(Mathf.Repeat(
-                    Time.time + _vertices[index].x * animationSettings.colorSpeed1, animationSettings.colorLength1));
-                colors[index + 1] = rainbow.Evaluate(Mathf.Repeat(
-                    Time.time + _vertices[index + 1].x * animationSettings.colorSpeed2,
-                    animationSettings.colorLength2));
-                colors[index + 2] = rainbow.Evaluate(Mathf.Repeat(
-                    Time.time + _vertices[index + 2].x * animationSettings.colorSpeed3,
-                    animationSettings.colorLength3));
-                colors[index + 3] = rainbow.Evaluate(Mathf.Repeat(
-                    Time.time + _vertices[index + 3].x * animationSettings.colorSpeed4,
-                    animationSettings.colorLength4));
+                return rainbow.Evaluate(positionInGradient);
             }
-        }
-
-        _mesh.colors = colors;
-        _textMesh.canvasRenderer.SetMesh(_mesh);
+            else
+            {
+                return rainbow.Evaluate(Mathf.Repeat(Time.time + positionInGradient, 1f));
+            }
+        
     }
 
     private float GetOffsetByIndex(int index)
@@ -232,20 +281,57 @@ public class WordWobble : MonoBehaviour
         };
     }
 
+    private float GetColorSpeedByIndex(int index)
+    {
+        return index switch
+        {
+            0 => animationSettings.colorSpeed1,
+            1 => animationSettings.colorSpeed2,
+            2 => animationSettings.colorSpeed3,
+            _ => animationSettings.colorSpeed4,
+        };
+    }
+
+    private float GetColorLengthByIndex(int index)
+    {
+        return index switch
+        {
+            0 => animationSettings.colorLength1,
+            1 => animationSettings.colorLength2,
+            2 => animationSettings.colorLength3,
+            _ => animationSettings.colorLength4,
+        };
+    }
+
+    private void OnDisable()
+    {
+        if (_animationCoroutine != null)
+        {
+            StopCoroutine(_animationCoroutine);
+        }
+    }
 #if UNITY_EDITOR
     [CustomEditor(typeof(WordWobble))]
     public class WordWobbleEditor : Editor
     {
-        public override void OnInspectorGUI()
+        public override void
+            OnInspectorGUI()
         {
             var wordWobble = (WordWobble)target;
-
             EditorGUI.BeginChangeCheck();
 
             if (wordWobble.wobbleMode != WobbleMode.QueueRise)
             {
                 wordWobble.wobbleMode = (WobbleMode)EditorGUILayout.EnumPopup("Wobble Mode", wordWobble.wobbleMode);
                 wordWobble.useParallel = EditorGUILayout.Toggle("Use Parallel", wordWobble.useParallel);
+                wordWobble.usePerLetterGradient =
+                    EditorGUILayout.Toggle("Use Per Letter Gradient", wordWobble.usePerLetterGradient);
+
+
+                    wordWobble.gradientDirection =
+                        (GradientDirection)EditorGUILayout.EnumPopup("Gradient Direction",
+                            wordWobble.gradientDirection);
+                
 
                 wordWobble.animationSettings.verticesOffset1 = EditorGUILayout.FloatField("Vertices Offset 1",
                     wordWobble.animationSettings.verticesOffset1);
@@ -292,5 +378,6 @@ public class WordWobble : MonoBehaviour
             }
         }
     }
-#endif
 }
+
+#endif 
